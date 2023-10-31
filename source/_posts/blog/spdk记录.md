@@ -1749,10 +1749,9 @@ static void hello_start(void *arg1) {
 **blob id的分配**
 
 ```c
-// 相关代码
-spdk_bs_create_blob
-	bs_create_blob
-    
+spdk_bs_create_blob(hello_context->bs, blob_create_complete, hello_context);
+	bs_create_blob(bs, NULL, NULL, cb_fn, cb_arg);
+// 相关代码 
 	spdk_spin_lock(&bs->used_lock);
 	// 找到第一个为0的位置
 	page_idx = spdk_bit_array_find_first_clear(bs->used_md_pages, 0);
@@ -1825,7 +1824,181 @@ bs_page_to_blobid(uint64_t page_idx)
 
 ```
 
+**由blob id找到对应blob**
 
+```c
+spdk_bs_open_blob(hello_context->bs, hello_context->blobid, open_complete, hello_context);
+	bs_open_blob(bs, blobid, NULL, cb_fn, cb_arg);
+// 相关代码
+	// 预先检查blob id是否为之前分配的合法id
+	page_num = bs_blobid_to_page(blobid);
+	if (spdk_bit_array_get(bs->used_blobids, page_num) == false) {
+		/* Invalid blobid */
+		cb_fn(cb_arg, NULL, -ENOENT);
+		return;
+	}
+	// 该blob是否已打开
+	blob = blob_lookup(bs, blobid);
+	if (blob) { // blob已存在，增加引用计数并返回
+		blob->open_ref++;
+		cb_fn(cb_arg, blob, 0);
+		return;
+	}
+	// 申请blob空间
+	blob = blob_alloc(bs, blobid);
+	// 从磁盘读取数据填充blob,略过
+```
+
+```c
+// 相关成员变量
+struct spdk_blob_store {
+    struct spdk_bit_array		*open_blobids;  
+    RB_HEAD(spdk_blob_tree, spdk_blob) open_blobs;  // 红黑树
+};
+// 初始化
+rc = spdk_bit_array_resize(&bs->open_blobids, bs->md_len);
+RB_INIT(&bs->open_blobs);
+
+
+static struct spdk_blob *
+blob_lookup(struct spdk_blob_store *bs, spdk_blob_id blobid)
+{
+	struct spdk_blob find;
+	// 在open_blobids位图中查找特定id，0表示不存在
+	if (spdk_bit_array_get(bs->open_blobids, blobid) == 0) {
+		return NULL;
+	}
+	// 从红黑树中查找对应blob并返回
+	find.id = blobid;
+	return RB_FIND(spdk_blob_tree, &bs->open_blobs, &find);
+}
+
+static struct spdk_blob *
+blob_alloc(struct spdk_blob_store *bs, spdk_blob_id id)
+{
+	struct spdk_blob *blob;
+
+	blob = calloc(1, sizeof(*blob));
+
+	blob->id = id;
+	blob->bs = bs;
+
+	blob->parent_id = SPDK_BLOBID_INVALID;
+
+	blob->state = SPDK_BLOB_STATE_DIRTY;
+	blob->extent_rle_found = false;
+	blob->extent_table_found = false;
+	blob->active.num_pages = 1;
+	blob->active.pages = calloc(1, sizeof(*blob->active.pages));
+
+	blob->active.pages[0] = bs_blobid_to_page(id);
+
+	TAILQ_INIT(&blob->xattrs);
+	TAILQ_INIT(&blob->xattrs_internal);
+	TAILQ_INIT(&blob->pending_persists);
+	TAILQ_INIT(&blob->persists_to_complete);
+
+	return blob;
+}
+```
+
+
+
+
+
+```c
+// 磁盘读取相关函数
+bs_sequence_read_dev(seq, &ctx->pages[0], lba, bs_byte_to_lba(bs, SPDK_BS_PAGE_SIZE), blob_load_cpl, ctx);  // 不用研究读取过程，直接当读取已完成，数据已在ctx->pages[0]中，阅读回调函数实现即可
+
+// LBA计算方式
+page_num = bs_blobid_to_page(blob->id);
+lba = bs_md_page_to_lba(blob->bs, page_num);
+
+static inline uint64_t
+bs_md_page_to_lba(struct spdk_blob_store *bs, uint32_t page)
+{
+	return bs_page_to_lba(bs, page + bs->md_start);
+}
+
+static inline uint64_t
+bs_page_to_lba(struct spdk_blob_store *bs, uint64_t page)
+{
+	return page * SPDK_BS_PAGE_SIZE / bs->dev->blocklen;
+}
+// 读回调函数
+static void
+blob_load_cpl(spdk_bs_sequence_t *seq, void *cb_arg, int bserrno)
+{
+	struct spdk_blob_load_ctx	*ctx = cb_arg;
+	struct spdk_blob		*blob = ctx->blob;
+	struct spdk_blob_md_page	*page;
+	int				rc;
+	uint32_t			crc;
+	uint32_t			current_page;
+
+	if (ctx->num_pages == 1) {
+		current_page = bs_blobid_to_page(blob->id);
+	} else {
+		assert(ctx->num_pages != 0);
+		page = &ctx->pages[ctx->num_pages - 2];
+		current_page = page->next;
+	}
+
+	/* Parse the pages */
+	rc = blob_parse(ctx->pages, ctx->num_pages, blob);
+
+	if (blob->extent_table_found == true) {
+		/* If EXTENT_TABLE was found, that means support for it should be enabled. */
+		assert(blob->extent_rle_found == false);
+		blob->use_extent_table = true;
+	} else {
+		/* If EXTENT_RLE or no extent_* descriptor was found disable support
+		 * for extent table. No extent_* descriptors means that blob has length of 0
+		 * and no extent_rle descriptors were persisted for it.
+		 * EXTENT_TABLE if used, is always present in metadata regardless of length. */
+		blob->use_extent_table = false;
+	}
+
+	/* Check the clear_method stored in metadata vs what may have been passed
+	 * via spdk_bs_open_blob_ext() and update accordingly.
+	 */
+	blob_update_clear_method(blob);
+
+	spdk_free(ctx->pages);
+	ctx->pages = NULL;
+
+	if (blob->extent_table_found) {
+		blob_load_cpl_extents_cpl(seq, ctx, 0);
+	} else {
+		blob_load_backing_dev(seq, ctx);
+	}
+}
+
+blob_load(seq, blob, bs_open_blob_cpl, blob);	
+
+static void
+bs_open_blob_cpl(spdk_bs_sequence_t *seq, void *cb_arg, int bserrno)
+{
+	struct spdk_blob *blob = cb_arg;
+	struct spdk_blob *existing;
+
+	existing = blob_lookup(blob->bs, blob->id);
+	if (existing) {
+		blob_free(blob);
+		existing->open_ref++;
+		seq->cpl.u.blob_handle.blob = existing;
+		bs_sequence_finish(seq, 0);
+		return;
+	}
+
+	blob->open_ref++;
+	// 更新open_blobids与open_blobs变量
+	spdk_bit_array_set(blob->bs->open_blobids, blob->id);
+	RB_INSERT(spdk_blob_tree, &blob->bs->open_blobs, blob);
+
+	bs_sequence_finish(seq, bserrno);
+}
+```
 
 
 
