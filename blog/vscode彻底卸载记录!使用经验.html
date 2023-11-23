@@ -1,4 +1,815 @@
-<!DOCTYPE html><html lang="zh-CN" data-default-color-scheme="auto"><head><meta charset="UTF-8"><link rel="apple-touch-icon" sizes="76x76" href="/img/nano-1.jpg"><link rel="icon" href="/img/nano-1.jpg"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,shrink-to-fit=no"><meta http-equiv="x-ua-compatible" content="ie=edge"><meta name="theme-color" content="#2f4154"><meta name="author" content="最佳损友1020"><meta name="keywords" content=""><meta name="description" content="vscode用久了一堆奇奇怪怪的东西和设置，就打算重装一下vscode，反正就当一个能高亮的编辑器。 删除远程主机扩展 1rm -rf ~&#x2F;.vscode-server   点击vscode安装文件夹unins000.exe，完成vscode程序的卸载 删除C:\Users\xxx.vscode文件夹 删除C:\Users\xxx\AppData\Roaming\Code彻底卸载VSCode"><meta property="og:type" content="article"><meta property="og:title" content="vscode彻底卸载记录&#x2F;使用经验"><meta property="og:url" content="https://www.jiasun.top/blog/vscode%E5%BD%BB%E5%BA%95%E5%8D%B8%E8%BD%BD%E8%AE%B0%E5%BD%95!%E4%BD%BF%E7%94%A8%E7%BB%8F%E9%AA%8C.html"><meta property="og:site_name" content="最佳损友1020’s Blog"><meta property="og:description" content="vscode用久了一堆奇奇怪怪的东西和设置，就打算重装一下vscode，反正就当一个能高亮的编辑器。 删除远程主机扩展 1rm -rf ~&#x2F;.vscode-server   点击vscode安装文件夹unins000.exe，完成vscode程序的卸载 删除C:\Users\xxx.vscode文件夹 删除C:\Users\xxx\AppData\Roaming\Code彻底卸载VSCode"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://img-blog.csdnimg.cn/c87f840328b241598931def0e9567846.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5pyA5L2z5o2f5Y-LMTAyMA==,size_8,color_FFFFFF,t_70,g_se,x_16"><meta property="article:published_time" content="2022-03-30T07:49:41.000Z"><meta property="article:modified_time" content="2023-10-31T14:45:59.341Z"><meta property="article:author" content="最佳损友1020"><meta property="article:tag" content="linux vscode"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://img-blog.csdnimg.cn/c87f840328b241598931def0e9567846.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5pyA5L2z5o2f5Y-LMTAyMA==,size_8,color_FFFFFF,t_70,g_se,x_16"><title>vscode彻底卸载记录/使用经验 - 最佳损友1020’s Blog</title><link rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css"><link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css"><link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css"><link rel="stylesheet" href="/css/main.css"><link id="highlight-css" rel="stylesheet" href="/css/highlight.css"><link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css"><link rel="stylesheet" href="/css/csdn.css"><link rel="stylesheet" href="/css/top.css"><script id="fluid-configs">var Fluid=window.Fluid||{};Fluid.ctx=Object.assign({},Fluid.ctx);var CONFIG={hostname:"www.jiasun.top",root:"/",version:"1.9.5-a",typing:{enable:!0,typeSpeed:70,cursorChar:"_",loop:!1,scope:[]},anchorjs:{enable:!0,element:"h1,h2,h3,h4,h5,h6",placement:"left",visible:"hover",icon:""},progressbar:{enable:!0,height_px:3,color:"#29d",options:{showSpinner:!1,trickleSpeed:100}},code_language:{enable:!0,default:"TEXT"},copy_btn:!0,image_caption:{enable:!0},image_zoom:{enable:!0,img_url_replace:["",""]},toc:{enable:!0,placement:"right",headingSelector:"h1,h2,h3,h4,h5,h6",collapseDepth:4},lazyload:{enable:!0,loading_img:"/img/loading.gif",onlypost:!1,offset_factor:2},web_analytics:{enable:!0,follow_dnt:!0,baidu:null,google:{measurement_id:null},tencent:{sid:null,cid:null},woyaola:null,cnzz:null,leancloud:{app_id:"n227FxNJCTncCeI3DrGx7MnC-gzGzoHsz",app_key:"ljkRZDiTtVmjn5mpaQmpFqgv",server_url:"https://n227fxnj.lc-cn-n1-shared.com",path:"window.location.pathname",ignore_local:!1}},search_path:"/local-search.xml",include_content_in_search:!0};if(CONFIG.web_analytics.follow_dnt){var dntVal=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack;Fluid.ctx.dnt=dntVal&&(dntVal.startsWith("1")||dntVal.startsWith("yes")||dntVal.startsWith("on"))}</script><script src="/js/utils.js"></script><script src="/js/color-schema.js"></script><script async>Fluid.ctx.dnt||Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=",(function(){function a(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],a("js",new Date),a("config","")}))</script><meta name="generator" content="Hexo 6.3.0"></head><body><header><div class="header-inner" style="height:70vh"><nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-dark scrolling-navbar"><div class="container"><a class="navbar-brand" href="/"><strong>最佳损友1020</strong> </a><button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><div class="animated-icon"><span></span><span></span><span></span></div></button><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav ml-auto text-center"><li class="nav-item"><a class="nav-link" href="/"><i class="iconfont icon-home-fill"></i> <span>首页</span></a></li><li class="nav-item"><a class="nav-link" href="/archives/"><i class="iconfont icon-archive-fill"></i> <span>归档</span></a></li><li class="nav-item"><a class="nav-link" href="/categories/"><i class="iconfont icon-category-fill"></i> <span>分类</span></a></li><li class="nav-item"><a class="nav-link" href="/tags/"><i class="iconfont icon-tags-fill"></i> <span>标签</span></a></li><li class="nav-item"><a class="nav-link" href="/about/"><i class="iconfont icon-user-fill"></i> <span>关于</span></a></li><li class="nav-item"><a class="nav-link" href="/links/"><i class="iconfont icon-link-fill"></i> <span>友链</span></a></li><li class="nav-item" id="search-btn"><a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search"><i class="iconfont icon-search"></i></a></li><li class="nav-item" id="color-toggle-btn"><a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle"><i class="iconfont icon-dark" id="color-toggle-icon"></i></a></li></ul></div></div></nav><div id="banner" class="banner" parallax="true" style="background:url(/img/bg.webp) no-repeat center center;background-size:cover"><div class="full-bg-img"><div class="mask flex-center" style="background-color:rgba(0,0,0,.3)"><div class="banner-text text-center fade-in-up"><div class="h2"><span id="subtitle" data-typed-text="vscode彻底卸载记录/使用经验"></span></div><div class="mt-3"><span class="post-meta"><i class="iconfont icon-date-fill" aria-hidden="true"></i> <time datetime="2022-03-30 15:49" pubdate>2022年3月30日 下午</time></span></div><div class="mt-1"><span class="post-meta mr-2"><i class="iconfont icon-chart"></i> 1.5k 字 </span><span class="post-meta mr-2"><i class="iconfont icon-clock-fill"></i> 13 分钟 </span><span id="leancloud-page-views-container" class="post-meta" style="display:none"><i class="iconfont icon-eye" aria-hidden="true"></i> <span id="leancloud-page-views"></span> 次</span></div></div></div></div></div></div></header><main><div class="container-fluid nopadding-x"><div class="row nomargin-x"><div class="side-col d-none d-lg-block col-lg-2"></div><div class="col-lg-8 nopadding-x-md"><div class="container nopadding-x-md" id="board-ctn"><div id="board"><article class="post-content mx-auto"><h1 id="seo-header">vscode彻底卸载记录/使用经验</h1><div class="markdown-body"><meta name="referrer" content="no-referrer"><p>vscode用久了一堆奇奇怪怪的东西和设置，就打算重装一下vscode，反正就当一个能高亮的编辑器。<br>删除远程主机扩展</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">rm</span> -rf ~/.vscode-server<br></code></pre></td></tr></table></figure><ol><li>点击vscode安装文件夹unins000.exe，完成vscode程序的卸载</li><li>删除C:\Users\xxx.vscode文件夹</li><li>删除C:\Users\xxx\AppData\Roaming\Code<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_29339467/article/details/104074758">彻底卸载VSCode</a></li></ol><p>重新安装vscode，将vscode设置成简体中文<br>Ctrl + Shift + P，切入到命令行模式。输入“Configure display Language”<br>下载简体中文语言包，切换语言包</p><p>下载vscode插件</p><ol><li>Theme - Oceanic Next</li><li>Vscode-icons</li><li>c++前两个插件<br><img src="https://img-blog.csdnimg.cn/c87f840328b241598931def0e9567846.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5pyA5L2z5o2f5Y-LMTAyMA==,size_8,color_FFFFFF,t_70,g_se,x_16" srcset="/img/loading.gif" lazyload></li></ol><p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1592654">推荐两款好看的 Vscode主题插件</a></p><p>json配置文件中加入</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-string">&quot;editor.mouseWheelZoom&quot;</span>: <br> <span class="hljs-literal">true</span><br></code></pre></td></tr></table></figure><p>用Ctrl+滚轮实现代码的缩放</p><p><strong>代码格式化快捷键</strong><br>● On Windows Shift + Alt + F</p><p>● On Mac 　　Shift + Option + F</p><p>● On Ubuntu Ctrl + Shift + I</p><p><strong>保存时自动格式化</strong></p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># &quot;editor.formatOnType&quot;: true, 不应该每写一行就格式化</span><br><br><span class="hljs-string">&quot;editor.formatOnSave&quot;</span>: <span class="hljs-literal">true</span>,<br></code></pre></td></tr></table></figure><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-string">&quot;C_Cpp.clang_format_fallbackStyle&quot;</span>: <span class="hljs-string">&quot; Google&quot;</span>, <span class="hljs-comment"># 设置风格为谷歌</span><br><span class="hljs-string">&quot;C_Cpp.default.cppStandard&quot;</span>: <span class="hljs-string">&quot;c++20&quot;</span>           <span class="hljs-comment"># 标准为c++20</span><br></code></pre></td></tr></table></figure><p>显示.git文件夹</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-string">&quot;files.exclude&quot;</span>: &#123;<br>     <span class="hljs-string">&quot;**/.git&quot;</span>: <span class="hljs-literal">false</span><br>&#125;<br></code></pre></td></tr></table></figure><p><strong>vscode下载加速</strong><br>首先进入vscode官方网站然后选择对应版本下载<br>然后进入浏览器下载页面<br>复制下载链接粘贴到地址栏<br>将地址中的&#x2F;stable前换成vscode.cdn.azure.cn</p><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/bielaiwuyang1999/article/details/117814237">VsCode下载，使用国内镜像秒下载</a></p><p><strong>格式化行长度</strong><br>可以设置格式化时行的最大长度（我不怎么喜欢格式化时不太长的行分成两行），可以按自己习惯设置行长度</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-string">&quot;C_Cpp.clang_format_fallbackStyle&quot;</span>: <span class="hljs-string">&quot;&#123;BasedOnStyle: Google, ColumnLimit: 100&#125;&quot;</span>,<br></code></pre></td></tr></table></figure><pre><code class="hljs">ColumnLimit (unsigned)
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/nano-1.jpg">
+  <link rel="icon" href="/img/nano-1.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="最佳损友1020">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="vscode用久了一堆奇奇怪怪的东西和设置，就打算重装一下vscode，反正就当一个能高亮的编辑器。 删除远程主机扩展 1rm -rf ~&#x2F;.vscode-server   点击vscode安装文件夹unins000.exe，完成vscode程序的卸载 删除C:\Users\xxx.vscode文件夹 删除C:\Users\xxx\AppData\Roaming\Code彻底卸载VSCode">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vscode彻底卸载记录&#x2F;使用经验">
+<meta property="og:url" content="https://www.jiasun.top/blog/vscode%E5%BD%BB%E5%BA%95%E5%8D%B8%E8%BD%BD%E8%AE%B0%E5%BD%95!%E4%BD%BF%E7%94%A8%E7%BB%8F%E9%AA%8C.html">
+<meta property="og:site_name" content="最佳损友1020’s Blog">
+<meta property="og:description" content="vscode用久了一堆奇奇怪怪的东西和设置，就打算重装一下vscode，反正就当一个能高亮的编辑器。 删除远程主机扩展 1rm -rf ~&#x2F;.vscode-server   点击vscode安装文件夹unins000.exe，完成vscode程序的卸载 删除C:\Users\xxx.vscode文件夹 删除C:\Users\xxx\AppData\Roaming\Code彻底卸载VSCode">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/c87f840328b241598931def0e9567846.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5pyA5L2z5o2f5Y-LMTAyMA==,size_8,color_FFFFFF,t_70,g_se,x_16">
+<meta property="article:published_time" content="2022-03-30T07:49:41.000Z">
+<meta property="article:modified_time" content="2023-10-31T14:45:59.341Z">
+<meta property="article:author" content="最佳损友1020">
+<meta property="article:tag" content="linux vscode">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/c87f840328b241598931def0e9567846.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5pyA5L2z5o2f5Y-LMTAyMA==,size_8,color_FFFFFF,t_70,g_se,x_16">
+  
+  
+  
+  <title>vscode彻底卸载记录/使用经验 - 最佳损友1020’s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/csdn.css">
+<link rel="stylesheet" href="/css/top.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.jiasun.top","root":"/","version":"1.9.5-a","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":4},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"n227FxNJCTncCeI3DrGx7MnC-gzGzoHsz","app_key":"ljkRZDiTtVmjn5mpaQmpFqgv","server_url":"https://n227fxnj.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>最佳损友1020</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="vscode彻底卸载记录/使用经验"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-03-30 15:49" pubdate>
+          2022年3月30日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          13 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">vscode彻底卸载记录/使用经验</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+
+<p>vscode用久了一堆奇奇怪怪的东西和设置，就打算重装一下vscode，反正就当一个能高亮的编辑器。<br> 删除远程主机扩展</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">rm</span> -rf ~/.vscode-server<br></code></pre></td></tr></table></figure>
+
+<ol>
+<li>点击vscode安装文件夹unins000.exe，完成vscode程序的卸载</li>
+<li>删除C:\Users\xxx.vscode文件夹</li>
+<li>删除C:\Users\xxx\AppData\Roaming\Code<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_29339467/article/details/104074758">彻底卸载VSCode</a></li>
+</ol>
+<p>重新安装vscode，将vscode设置成简体中文<br>Ctrl + Shift + P，切入到命令行模式。输入“Configure display Language”<br>下载简体中文语言包，切换语言包</p>
+<p>下载vscode插件</p>
+<ol>
+<li>Theme - Oceanic Next</li>
+<li>Vscode-icons</li>
+<li>c++前两个插件<br> <img src="https://img-blog.csdnimg.cn/c87f840328b241598931def0e9567846.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5pyA5L2z5o2f5Y-LMTAyMA==,size_8,color_FFFFFF,t_70,g_se,x_16" srcset="/img/loading.gif" lazyload></li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1592654">推荐两款好看的 Vscode主题插件</a></p>
+<p>json配置文件中加入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-string">&quot;editor.mouseWheelZoom&quot;</span>: <br> <span class="hljs-literal">true</span><br></code></pre></td></tr></table></figure>
+<p>用Ctrl+滚轮实现代码的缩放</p>
+<p><strong>代码格式化快捷键</strong><br>● On Windows Shift + Alt + F</p>
+<p>● On Mac 　　Shift + Option + F</p>
+<p>● On Ubuntu Ctrl + Shift + I</p>
+<p><strong>保存时自动格式化</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># &quot;editor.formatOnType&quot;: true, 不应该每写一行就格式化</span><br><br><span class="hljs-string">&quot;editor.formatOnSave&quot;</span>: <span class="hljs-literal">true</span>,<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-string">&quot;C_Cpp.clang_format_fallbackStyle&quot;</span>: <span class="hljs-string">&quot; Google&quot;</span>, <span class="hljs-comment"># 设置风格为谷歌</span><br><span class="hljs-string">&quot;C_Cpp.default.cppStandard&quot;</span>: <span class="hljs-string">&quot;c++20&quot;</span>           <span class="hljs-comment"># 标准为c++20</span><br></code></pre></td></tr></table></figure>
+<p>显示.git文件夹</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-string">&quot;files.exclude&quot;</span>: &#123;<br>     <span class="hljs-string">&quot;**/.git&quot;</span>: <span class="hljs-literal">false</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+<p><strong>vscode下载加速</strong><br>    首先进入vscode官方网站然后选择对应版本下载<br>    然后进入浏览器下载页面<br>    复制下载链接粘贴到地址栏<br>    将地址中的&#x2F;stable前换成vscode.cdn.azure.cn</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/bielaiwuyang1999/article/details/117814237">VsCode下载，使用国内镜像秒下载</a></p>
+<p><strong>格式化行长度</strong><br>可以设置格式化时行的最大长度（我不怎么喜欢格式化时不太长的行分成两行），可以按自己习惯设置行长度</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-string">&quot;C_Cpp.clang_format_fallbackStyle&quot;</span>: <span class="hljs-string">&quot;&#123;BasedOnStyle: Google, ColumnLimit: 100&#125;&quot;</span>,<br></code></pre></td></tr></table></figure>
+
+<pre><code class="hljs">ColumnLimit (unsigned)
 限制列。
 列的限制为0意味着没有列限制。在这种情况下，clang-format将谨慎对待在声明中输入行的换行决定，除非与其他规则矛盾。
-</code></pre><p>有时需改动.clang-format文件</p><p>扩展设置分为用户，远程，工作区，一个没生效可以都试一下。</p><p><strong>使用vscode配置C&#x2F;C++运行程序</strong><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/105135431">Windows下VSCode配置C++环境</a><br>大学的时候配置Windows的vscode c++环境总是出现问题，后面就懒得配了，直接开Linux虚拟机然后用vscode远程连接，命令行g++运行 gdb调试，虽然也可以，但确实有点麻烦，最近想花点时间研究一下为什么出问题，没想到这次一点问题也没有，按照文章的步骤几下就成功了，不知道为什么我以前一直没配成，还是要勇于打破固有观念，vscode的调试功能确实好用</p><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_55644008/article/details/125820835">VScode（C&#x2F;C++）无法自动生成launch.json文件解决办法</a><br>切换c++扩展版本至1.8.4</p></div><hr><div><div class="post-metas my-3"><div class="post-meta mr-3 d-flex align-items-center"><i class="iconfont icon-category"></i> <span class="category-chains"><span class="category-chain"><a href="/categories/%E8%B8%A9%E5%9D%91%E6%97%A5%E8%AE%B0/" class="category-chain-item">踩坑日记</a></span></span></div><div class="post-meta"><i class="iconfont icon-tags"></i> <a href="/tags/linux-vscode/" class="print-no-link">#linux vscode</a></div></div><div class="post-prevnext my-3"><article class="post-prev col-6"><a href="/blog/%E7%8E%8B%E9%81%93%E8%80%83%E7%A0%94%E6%9C%BA%E8%AF%95%E6%8C%87%E5%8D%97%E9%87%8D%E5%86%99.html" title="王道考研机试指南重写"><i class="iconfont icon-arrowleft"></i> <span class="hidden-mobile">王道考研机试指南重写</span> <span class="visible-mobile">上一篇</span></a></article><article class="post-next col-6"><a href="/blog/CMU%2015213%EF%BC%88%E5%B7%B2%E6%90%81%E7%BD%AE%EF%BC%89.html" title="CMU 15213（已搁置）"><span class="hidden-mobile">CMU 15213（已搁置）</span> <span class="visible-mobile">下一篇</span> <i class="iconfont icon-arrowright"></i></a></article></div></div><article id="comments" lazyload><div id="valine"></div><script type="text/javascript">Fluid.utils.loadComments("#valine",(function(){Fluid.utils.createScript("https://lib.baomitu.com/valine/1.5.1/Valine.min.js",(function(){var e=Object.assign({appId:"uU0wegCOTLXqtIgWmhAD3MFq-gzGzoHsz",appKey:"0e2MMh7ddBCGGytOe9UEy5NP",path:"window.location.pathname",placeholder:null,avatar:"retro",meta:["nick","mail"],requiredFields:[],pageSize:10,lang:"zh-CN",highlight:!0,recordIP:!0,serverURLs:"https://uu0wegco.lc-cn-n1-shared.com",emojiCDN:null,emojiMaps:null,enableQQ:!1},{el:"#valine",path:window.location.pathname});new Valine(e),Fluid.utils.waitElementVisible("#valine .vcontent",()=>{var e="#valine .vcontent img:not(.vemoji)";Fluid.plugins.imageCaption(e),Fluid.plugins.fancyBox(e)})}))}))</script><noscript>Please enable JavaScript to view the comments</noscript></article></article></div></div></div><div class="side-col d-none d-lg-block col-lg-2"><aside class="sidebar" style="margin-left:-1rem"><div id="toc"><p class="toc-header"><i class="iconfont icon-list"></i> <span>目录</span></p><div class="toc-body" id="toc-body"></div></div></aside></div></div></div><a id="scroll-top-button" aria-label="TOP" href="#" role="button"><i class="iconfont icon-arrowup" aria-hidden="true"></i></a><div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable modal-lg" role="document"><div class="modal-content"><div class="modal-header text-center"><h4 class="modal-title w-100 font-weight-bold">搜索</h4><button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body mx-3"><div class="md-form mb-5"><input type="text" id="local-search-input" class="form-control validate"> <label data-error="x" data-success="v" for="local-search-input">关键词</label></div><div class="list-group" id="local-search-result"></div></div></div></div></div></main><footer><div class="footer-inner"><div class="footer-content"><a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a></div><div class="statistics"><span id="leancloud-site-pv-container" style="display:none">总访问量 <span id="leancloud-site-pv"></span> 次 </span><span id="leancloud-site-uv-container" style="display:none">总访客数 <span id="leancloud-site-uv"></span> 人</span></div></div></footer><script src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js"></script><link rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css"><script>NProgress.configure({showSpinner:!1,trickleSpeed:100}),NProgress.start(),window.addEventListener("load",(function(){NProgress.done()}))</script><script src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js"></script><script src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js"></script><script src="/js/events.js"></script><script src="/js/plugins.js"></script><script src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js"></script><script>!function(t,e){var i=Fluid.plugins.typing,n=e.getElementById("subtitle");n&&i&&i(n.getAttribute("data-typed-text"))}(window,document)</script><script src="/js/img-lazyload.js"></script><script>Fluid.utils.createScript("https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js",(function(){var t=jQuery("#toc");if(0!==t.length&&window.tocbot){var i=jQuery("#board-ctn").offset().top;window.tocbot.init(Object.assign({tocSelector:"#toc-body",contentSelector:".markdown-body",linkClass:"tocbot-link",activeLinkClass:"tocbot-active-link",listClass:"tocbot-list",isCollapsedClass:"tocbot-is-collapsed",collapsibleClass:"tocbot-is-collapsible",scrollSmooth:!0,includeTitleTags:!0,headingsOffset:-i},CONFIG.toc)),t.find(".toc-list-item").length>0&&t.css("visibility","visible"),Fluid.events.registerRefreshCallback((function(){if("tocbot"in window){tocbot.refresh();var t=jQuery("#toc");if(0===t.length||!tocbot)return;t.find(".toc-list-item").length>0&&t.css("visibility","visible")}}))}}))</script><script src="https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js"></script><script>Fluid.plugins.codeWidget()</script><script>Fluid.utils.createScript("https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js",(function(){window.anchors.options={placement:CONFIG.anchorjs.placement,visible:CONFIG.anchorjs.visible},CONFIG.anchorjs.icon&&(window.anchors.options.icon=CONFIG.anchorjs.icon);var n=(CONFIG.anchorjs.element||"h1,h2,h3,h4,h5,h6").split(","),o=[];for(var s of n)o.push(".markdown-body > "+s.trim());"left"===CONFIG.anchorjs.placement&&(window.anchors.options.class="anchorjs-link-left"),window.anchors.add(o.join(", ")),Fluid.events.registerRefreshCallback((function(){if("anchors"in window){anchors.removeAll();var n=(CONFIG.anchorjs.element||"h1,h2,h3,h4,h5,h6").split(","),o=[];for(var s of n)o.push(".markdown-body > "+s.trim());"left"===CONFIG.anchorjs.placement&&(anchors.options.class="anchorjs-link-left"),anchors.add(o.join(", "))}}))}))</script><script>Fluid.utils.createScript("https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js",(function(){Fluid.plugins.fancyBox()}))</script><script>Fluid.plugins.imageCaption()</script><script defer src="/js/leancloud.js"></script><script src="/js/local-search.js"></script><script src="/js/boot.js"></script><noscript><div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div></noscript></body></html>
+</code></pre>
+<p>有时需改动.clang-format文件</p>
+<p>扩展设置分为用户，远程，工作区，一个没生效可以都试一下。</p>
+<p><strong>使用vscode配置C&#x2F;C++运行程序</strong><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/105135431">Windows下VSCode配置C++环境</a><br>大学的时候配置Windows的vscode c++环境总是出现问题，后面就懒得配了，直接开Linux虚拟机然后用vscode远程连接，命令行g++运行 gdb调试，虽然也可以，但确实有点麻烦，最近想花点时间研究一下为什么出问题，没想到这次一点问题也没有，按照文章的步骤几下就成功了，不知道为什么我以前一直没配成，还是要勇于打破固有观念，vscode的调试功能确实好用</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_55644008/article/details/125820835">VScode（C&#x2F;C++）无法自动生成launch.json文件解决办法</a><br>切换c++扩展版本至1.8.4</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%B8%A9%E5%9D%91%E6%97%A5%E8%AE%B0/" class="category-chain-item">踩坑日记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/linux-vscode/" class="print-no-link">#linux vscode</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/blog/%E7%8E%8B%E9%81%93%E8%80%83%E7%A0%94%E6%9C%BA%E8%AF%95%E6%8C%87%E5%8D%97%E9%87%8D%E5%86%99.html" title="王道考研机试指南重写">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">王道考研机试指南重写</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/blog/CMU%2015213%EF%BC%88%E5%B7%B2%E6%90%81%E7%BD%AE%EF%BC%89.html" title="CMU 15213（已搁置）">
+                        <span class="hidden-mobile">CMU 15213（已搁置）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"uU0wegCOTLXqtIgWmhAD3MFq-gzGzoHsz","appKey":"0e2MMh7ddBCGGytOe9UEy5NP","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":true,"recordIP":true,"serverURLs":"https://uu0wegco.lc-cn-n1-shared.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

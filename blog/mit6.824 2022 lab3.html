@@ -1,1 +1,821 @@
-<!DOCTYPE html><html lang="zh-CN" data-default-color-scheme="auto"><head><meta charset="UTF-8"><link rel="apple-touch-icon" sizes="76x76" href="/img/nano-1.jpg"><link rel="icon" href="/img/nano-1.jpg"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,shrink-to-fit=no"><meta http-equiv="x-ua-compatible" content="ie=edge"><meta name="theme-color" content="#2f4154"><meta name="author" content="最佳损友1020"><meta name="keywords" content=""><meta name="description" content="汇总博客：MIT6.824 2022 推荐博客：如何的才能更好地学习 MIT6.824 分布式系统课程？SOFAJRaft 日志复制 - pipeline 实现剖析 | SOFAJRaft 实现原理raft在处理用户请求超时的时候，如何避免重试的请求被多次应用？一致性模型与共识算法  lab3总体来说比lab2简单很多（至少通过一次全部测试简单很多），简单记录一下实验中遇到的问题。 3As"><meta property="og:type" content="article"><meta property="og:title" content="mit6.824 2022 lab3"><meta property="og:url" content="https://www.jiasun.top/blog/mit6.824%202022%20lab3.html"><meta property="og:site_name" content="最佳损友1020’s Blog"><meta property="og:description" content="汇总博客：MIT6.824 2022 推荐博客：如何的才能更好地学习 MIT6.824 分布式系统课程？SOFAJRaft 日志复制 - pipeline 实现剖析 | SOFAJRaft 实现原理raft在处理用户请求超时的时候，如何避免重试的请求被多次应用？一致性模型与共识算法  lab3总体来说比lab2简单很多（至少通过一次全部测试简单很多），简单记录一下实验中遇到的问题。 3As"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://img-blog.csdnimg.cn/40c2aa6ca58546a6803cbdb22bfe5334.png"><meta property="article:published_time" content="2022-11-23T02:49:27.000Z"><meta property="article:modified_time" content="2023-10-31T14:45:59.224Z"><meta property="article:author" content="最佳损友1020"><meta property="article:tag" content="Key&#x2F;Value 6.824 lab3 kvraft"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://img-blog.csdnimg.cn/40c2aa6ca58546a6803cbdb22bfe5334.png"><title>mit6.824 2022 lab3 - 最佳损友1020’s Blog</title><link rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css"><link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css"><link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css"><link rel="stylesheet" href="/css/main.css"><link id="highlight-css" rel="stylesheet" href="/css/highlight.css"><link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css"><link rel="stylesheet" href="/css/csdn.css"><link rel="stylesheet" href="/css/top.css"><script id="fluid-configs">var Fluid=window.Fluid||{};Fluid.ctx=Object.assign({},Fluid.ctx);var CONFIG={hostname:"www.jiasun.top",root:"/",version:"1.9.5-a",typing:{enable:!0,typeSpeed:70,cursorChar:"_",loop:!1,scope:[]},anchorjs:{enable:!0,element:"h1,h2,h3,h4,h5,h6",placement:"left",visible:"hover",icon:""},progressbar:{enable:!0,height_px:3,color:"#29d",options:{showSpinner:!1,trickleSpeed:100}},code_language:{enable:!0,default:"TEXT"},copy_btn:!0,image_caption:{enable:!0},image_zoom:{enable:!0,img_url_replace:["",""]},toc:{enable:!0,placement:"right",headingSelector:"h1,h2,h3,h4,h5,h6",collapseDepth:4},lazyload:{enable:!0,loading_img:"/img/loading.gif",onlypost:!1,offset_factor:2},web_analytics:{enable:!0,follow_dnt:!0,baidu:null,google:{measurement_id:null},tencent:{sid:null,cid:null},woyaola:null,cnzz:null,leancloud:{app_id:"n227FxNJCTncCeI3DrGx7MnC-gzGzoHsz",app_key:"ljkRZDiTtVmjn5mpaQmpFqgv",server_url:"https://n227fxnj.lc-cn-n1-shared.com",path:"window.location.pathname",ignore_local:!1}},search_path:"/local-search.xml",include_content_in_search:!0};if(CONFIG.web_analytics.follow_dnt){var dntVal=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack;Fluid.ctx.dnt=dntVal&&(dntVal.startsWith("1")||dntVal.startsWith("yes")||dntVal.startsWith("on"))}</script><script src="/js/utils.js"></script><script src="/js/color-schema.js"></script><script async>Fluid.ctx.dnt||Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=",(function(){function a(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],a("js",new Date),a("config","")}))</script><meta name="generator" content="Hexo 6.3.0"></head><body><header><div class="header-inner" style="height:70vh"><nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-dark scrolling-navbar"><div class="container"><a class="navbar-brand" href="/"><strong>最佳损友1020</strong> </a><button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><div class="animated-icon"><span></span><span></span><span></span></div></button><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav ml-auto text-center"><li class="nav-item"><a class="nav-link" href="/"><i class="iconfont icon-home-fill"></i> <span>首页</span></a></li><li class="nav-item"><a class="nav-link" href="/archives/"><i class="iconfont icon-archive-fill"></i> <span>归档</span></a></li><li class="nav-item"><a class="nav-link" href="/categories/"><i class="iconfont icon-category-fill"></i> <span>分类</span></a></li><li class="nav-item"><a class="nav-link" href="/tags/"><i class="iconfont icon-tags-fill"></i> <span>标签</span></a></li><li class="nav-item"><a class="nav-link" href="/about/"><i class="iconfont icon-user-fill"></i> <span>关于</span></a></li><li class="nav-item"><a class="nav-link" href="/links/"><i class="iconfont icon-link-fill"></i> <span>友链</span></a></li><li class="nav-item" id="search-btn"><a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search"><i class="iconfont icon-search"></i></a></li><li class="nav-item" id="color-toggle-btn"><a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle"><i class="iconfont icon-dark" id="color-toggle-icon"></i></a></li></ul></div></div></nav><div id="banner" class="banner" parallax="true" style="background:url(/img/bg.webp) no-repeat center center;background-size:cover"><div class="full-bg-img"><div class="mask flex-center" style="background-color:rgba(0,0,0,.3)"><div class="banner-text text-center fade-in-up"><div class="h2"><span id="subtitle" data-typed-text="mit6.824 2022 lab3"></span></div><div class="mt-3"><span class="post-meta"><i class="iconfont icon-date-fill" aria-hidden="true"></i> <time datetime="2022-11-23 10:49" pubdate>2022年11月23日 上午</time></span></div><div class="mt-1"><span class="post-meta mr-2"><i class="iconfont icon-chart"></i> 20k 字 </span><span class="post-meta mr-2"><i class="iconfont icon-clock-fill"></i> 165 分钟 </span><span id="leancloud-page-views-container" class="post-meta" style="display:none"><i class="iconfont icon-eye" aria-hidden="true"></i> <span id="leancloud-page-views"></span> 次</span></div></div></div></div></div></div></header><main><div class="container-fluid nopadding-x"><div class="row nomargin-x"><div class="side-col d-none d-lg-block col-lg-2"></div><div class="col-lg-8 nopadding-x-md"><div class="container nopadding-x-md" id="board-ctn"><div id="board"><article class="post-content mx-auto"><h1 id="seo-header">mit6.824 2022 lab3</h1><div class="markdown-body"><meta name="referrer" content="no-referrer"><p>汇总博客：<a href="https://www.jiasun.top/blog/mit6.824%202022.html">MIT6.824 2022</a></p><p>推荐博客：<br><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/29597104/answer/128443409">如何的才能更好地学习 MIT6.824 分布式系统课程？</a><br><a target="_blank" rel="noopener" href="https://www.sofastack.tech/blog/sofa-jraft-pipeline-principle/">SOFAJRaft 日志复制 - pipeline 实现剖析 | SOFAJRaft 实现原理</a><br><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/278551592">raft在处理用户请求超时的时候，如何避免重试的请求被多次应用？</a><br><a target="_blank" rel="noopener" href="https://tanxinyu.work/consistency-and-consensus/#etcd-%E7%9A%84-Raft">一致性模型与共识算法</a></p><p>lab3总体来说比lab2简单很多（至少通过一次全部测试简单很多），简单记录一下实验中遇到的问题。</p><h2 id="3A"><a href="#3A" class="headerlink" title="3A"></a>3A</h2><p>step 1：通过TestBasic3A测试<br>基本思路：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go">Clerk.PutAppend <br>	KVServer.PutAppend<br>		Raft.Start<br>		定时轮询，查看相应请求是否执行，获取请求结果<br>receiveTask：<br>	接收raft msg<br>	执行请求，修改数据结构，存入请求执行结果<br></code></pre></td></tr></table></figure><p>step2：处理失败与重复执行问题<br>处理失败只需要加一个检测机制与超时机制</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs go">Clerk.PutAppend <br>	KVServer.PutAppend<br>		Raft.Start<br>		定时轮询，查看相应请求是否执行，获取请求结果<br>		检测相应位置是否出现了其他的命令（实际上就是比较commit index与cmd index），返回leader错误<br>		若超过一段时间请求仍未执行，返回超时错误<br>receiveTask：<br>	接收raft msg<br>	执行请求，修改数据结构，存入请求执行结果<br></code></pre></td></tr></table></figure><p>client在接收到RPC回复leader错误&#x2F;超时错误后尝试其他server。<br>由于理解错了以下这段文本的意思，在刚开始测试的时候没有加入超时机制</p><blockquote><p>One way to do this is for the server to detect that it has lost leadership, by noticing that a different request has appeared at the index returned by Start(), or that Raft’s term has changed. If the ex-leader is partitioned by itself, it won’t know about new leaders; but any client in the same partition won’t be able to talk to a new leader either, so it’s OK in this case for the server and client to wait indefinitely until the partition heals.</p></blockquote><p>wait indefinitely 的前提条件是ex-leader被置于一个分区，<strong>且</strong>client也无法与其他server通信。<br>在运行TestManyPartitionsOneClient3A测试时，由于没有超时机制，sever一直等待raft执行刚下发的命令，但相应位置一直没有刚下发的命令，也没有其他命令，就卡死了。这时候client应该与另一个分区的leader通信，才能正常执行请求。</p><p>重复执行问题与及时释放内存实际上可以一起实现，最关键是理解It’s OK to assume that a client will make only one call into a Clerk at a time.的含义。我将它理解成raft已提交日志中一旦出现新的请求，旧的请求结果就不用保存了，重复执行策略只针对一段时间重复出现的请求。</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs go">commit log只可能出现<br><span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">1</span><br>commit log不可能出现<br><span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">1</span> <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure><p>client相关的数据结构见<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/278551592">raft在处理用户请求超时的时候，如何避免重试的请求被多次应用？</a>，不过由于client的make only one call前提，就不需要最大成功回复的proposal的序列号了。</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> ReqResult <span class="hljs-keyword">struct</span> &#123; <span class="hljs-comment">// 命令执行返回</span><br>	SequenceNum <span class="hljs-type">int64</span>  <span class="hljs-comment">// 命令序列号</span><br>	Status      Err    <span class="hljs-comment">// 命令执行状态</span><br>	Value       <span class="hljs-type">string</span> <span class="hljs-comment">// 命令执行结果</span><br>&#125;<br>clientCache       <span class="hljs-keyword">map</span>[<span class="hljs-type">int64</span>]ReqResult <span class="hljs-comment">// 存放各个客户端最新结果</span><br></code></pre></td></tr></table></figure><p>使用一个map数据结构存放各个客户端最新请求的执行结果，如果接收raft消息后发现相应SequenceNum等于cache的SequenceNum，就不再执行该请求；如果大于则执行相应请求，此时也相当于释放了之前请求结果的内存。</p><h2 id="3B"><a href="#3B" class="headerlink" title="3B"></a>3B</h2><p>这部分需要回答两个问题：在什么时候检查raftstate大小并生成快照？快照中需要包含什么数据？<br>一：可以在Get或PutAppend中检查raftstate大小吗？ 答案是不行，非leader的这两个RPC一般不会被调用，有可能会超过maxraftstate。所以我选择开启一个协程，定时检查raftstate大小并生成快照。(后面又改成了在receiveTask中检查，省的另开一个协程）<br>二：避免生成无用的快照<br>在lab2的Snapshot中我比较了当前快照索引与函数的快照索引</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rf *Raft)</span></span> Snapshot(index <span class="hljs-type">int</span>, snapshot []<span class="hljs-type">byte</span>) &#123;<br>	rf.mu.Lock()<br>	<span class="hljs-keyword">defer</span> rf.mu.Unlock()<br>	<span class="hljs-keyword">if</span> index &lt;= rf.lastIncludedIndex &#123; <span class="hljs-comment">// 至少得比当前快照更新</span><br>		WPrintf(<span class="hljs-string">&quot;server%v no use snapshot.this index:%v last index:%v\n&quot;</span>, rf.me, rf.lastIncludedIndex, index)<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	<span class="hljs-comment">// rf.log = rf.log[index-rf.lastIncludedIndex:]</span><br>	rf.log = <span class="hljs-built_in">append</span>([]logEntry&#123;&#125;, rf.log[index-rf.lastIncludedIndex:]...)<br>	rf.lastIncludedIndex = index<br>	rf.lastIncludedTerm = rf.log[<span class="hljs-number">0</span>].Term <span class="hljs-comment">// 日志0位的term</span><br>	rf.snapshot = snapshot<br>	rf.persistStateAndSnapshot()<br>	<span class="hljs-comment">// DPrintf(&quot;generate Snapshot. server id:%v Snapshot index:%v  log len:%v   commmit index:%v apply index:%v&quot;, rf.me, index, len(rf.log), rf.commitIndex, rf.lastApplied)</span><br>&#125;<br></code></pre></td></tr></table></figure><p>在3B测试中打印了一堆no use snapshot，并且两个索引一模一样，故记录上次生成快照时的索引大小，仅仅在commit index大于lastSnapshotIndex时才生成快照。</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">if</span> kv.persister.RaftStateSize() &gt; kv.snapshotThreshold &amp;&amp; kv.commitIndex &gt; kv.lastSnapshotIndex<br></code></pre></td></tr></table></figure><p>由此又考虑了另外一个问题，快照只能减小由commit log带来的空间开销，如果log中的日志全部为未提交，那么再怎么生成快照也没用。所以存在一种可能，不断进入的client请求可以让raftstate超过maxraftstate，故我在900时就开始生成快照（max是1000），并且在请求加入时判断当前raftstate是否超过maxraftstate，如果超过就等待。</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">for</span> !kv.killed() &#123;<br>	kv.mu.Lock()<br>	_, isLeader := kv.rf.GetState()<br>	isLogFull := kv.persister.RaftStateSize() &gt; kv.maxraftstate<br>	kv.mu.Unlock()<br>	<span class="hljs-keyword">if</span> !isLogFull &amp;&amp; isLeader &#123;<br>		<span class="hljs-keyword">break</span><br>	&#125;<br>	<span class="hljs-keyword">if</span> !isLeader &#123;<br>		reply.Status = ErrWrongLeader<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	<span class="hljs-keyword">if</span> isLogFull &amp;&amp; time.Since(requestBegin) &gt; TimeoutThreshold &#123;<br>		reply.Status = ErrLogFull<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	time.Sleep(GeneralPollFrequency)<br>&#125;<br></code></pre></td></tr></table></figure><p>但运行TestPersistConcurrent3A测试卡死了，查看状态后发现leader处于如下状态<br><img src="https://img-blog.csdnimg.cn/40c2aa6ca58546a6803cbdb22bfe5334.png" srcset="/img/loading.gif" lazyload><br>虽然match index全部为847，但不是当前term，commit index无法更新，但raftstate（1027）已经大于max（1000），请求又无法加入，就一直卡死了。所以看之前有个建议非常好，每当节点被选举为leader，就向日志中加入一条空指令，这样就能最快地更新commit index。<br>最后我将以上这段代码删掉了，但实际上也不会报错，因为每个client一段时间只会执行一个请求，请求的key value又比较小，且client的数目比较少，而且在最后测试时比较的不是maxraftstate，而是8*maxraftstate。</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// Maximum log size across all servers</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(cfg *config)</span></span> LogSize() <span class="hljs-type">int</span> &#123;<br>	logsize := <span class="hljs-number">0</span><br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; cfg.n; i++ &#123;<br>		n := cfg.saved[i].RaftStateSize()<br>		<span class="hljs-keyword">if</span> n &gt; logsize &#123;<br>			logsize = n<br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">return</span> logsize<br>&#125;<br><br><span class="hljs-keyword">if</span> maxraftstate &gt; <span class="hljs-number">0</span> &#123;<br>	<span class="hljs-comment">// Check maximum after the servers have processed all client</span><br>	<span class="hljs-comment">// requests and had time to checkpoint.</span><br>	sz := cfg.LogSize()<br>	<span class="hljs-keyword">if</span> sz &gt; <span class="hljs-number">8</span>*maxraftstate &#123;<br>		t.Fatalf(<span class="hljs-string">&quot;logs were not trimmed (%v &gt; 8*%v)&quot;</span>, sz, maxraftstate)<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure><p>三：为了避免重复执行请求，在生成快照时需要将client cache编码进去</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> generateSnapshotTask() &#123;<br>	<span class="hljs-keyword">for</span> !kv.killed() &#123;<br>		kv.mu.Lock()<br>		<span class="hljs-keyword">if</span> kv.persister.RaftStateSize() &gt; kv.maxraftstate &amp;&amp; kv.commitIndex &gt; kv.lastSnapshotIndex &#123;<br>			w := <span class="hljs-built_in">new</span>(bytes.Buffer)<br>			e := labgob.NewEncoder(w)<br>			e.Encode(kv.commitIndex)<br>			e.Encode(kv.clientCache)<br>			e.Encode(kv.kvData)<br>			snapshot := w.Bytes()<br>			kv.rf.Snapshot(kv.commitIndex, snapshot)<br>			kv.lastSnapshotIndex = kv.commitIndex<br>		&#125;<br>		kv.mu.Unlock()<br>		time.Sleep(SnapshotPollFrequency)<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure><p>在整个实验中我都没有用到term，只用了commit index。</p><p><strong>复用RPC回复警告</strong></p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs go">Test: one client (<span class="hljs-number">3</span>A) ...<br>labgob warning: Decoding into a non-<span class="hljs-keyword">default</span> variable/field Err may not work<br>  ... Passed --  <span class="hljs-number">15.1</span>  <span class="hljs-number">5</span>  <span class="hljs-number">7809</span>  <span class="hljs-number">722</span><br><span class="hljs-comment">// 不好的  </span><br>    args := GetArgs&#123;Key: key&#125;<br>    reply := GetReply&#123;&#125;<br>    <span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; ; i = (i + <span class="hljs-number">1</span>) % ck.serverNumber &#123;<br>		ok := ck.servers[i].Call(<span class="hljs-string">&quot;KVServer.Get&quot;</span>, &amp;args, &amp;reply)<br><span class="hljs-comment">// 推荐的      </span><br>	args := GetArgs&#123;Key: key&#125;<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; ; i = (i + <span class="hljs-number">1</span>) % ck.serverNumber &#123;<br>		reply := GetReply&#123;&#125;<br>         ok := ck.servers[i].Call(<span class="hljs-string">&quot;KVServer.Get&quot;</span>, &amp;args, &amp;reply)<br><br><span class="hljs-comment">// this warning typically arises if code re-uses the same RPC reply</span><br><span class="hljs-comment">// variable for multiple RPC calls, or if code restores persisted</span><br><span class="hljs-comment">// state into variable that already have non-default values.</span><br>fmt.Printf(<span class="hljs-string">&quot;labgob warning: Decoding into a non-default variable/field %v may not work\n&quot;</span>,<br>           what)<br></code></pre></td></tr></table></figure><h2 id="实验结果与speed问题"><a href="#实验结果与speed问题" class="headerlink" title="实验结果与speed问题"></a>实验结果与speed问题</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">test</span> <br>Test: one client (3A) ...<br>  ... Passed --  15.1  5 10613 1350<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  6710    0<br>Test: many clients (3A) ...<br>  ... Passed --  15.3  5 26714 3478<br>Test: unreliable net, many clients (3A) ...<br>  ... Passed --  16.0  5 10565 1510<br>Test: concurrent append to same key, unreliable (3A) ...<br>  ... Passed --   0.9  3   271   52<br>Test: progress <span class="hljs-keyword">in</span> majority (3A) ...<br>  ... Passed --   0.6  5    66    2<br>Test: no progress <span class="hljs-keyword">in</span> minority (3A) ...<br>  ... Passed --   1.0  5   158    3<br>Test: completion after heal (3A) ...<br>  ... Passed --   1.0  5    63    3<br>Test: partitions, one client (3A) ...<br>  ... Passed --  22.8  5 15661 1252<br>Test: partitions, many clients (3A) ...<br>  ... Passed --  22.9  5 106202 3216<br>Test: restarts, one client (3A) ...<br>  ... Passed --  19.4  5 22991 1347<br>Test: restarts, many clients (3A) ...<br>  ... Passed --  20.1  5 72489 3498<br>Test: unreliable net, restarts, many clients (3A) ...<br>  ... Passed --  21.6  5 11451 1425<br>Test: restarts, partitions, many clients (3A) ...<br>  ... Passed --  26.8  5 69832 3170<br>Test: unreliable net, restarts, partitions, many clients (3A) ...<br>  ... Passed --  28.5  5 10220 1079<br>Test: unreliable net, restarts, partitions, random keys, many clients (3A) ...<br>2022/11/27 02:39:42 The corresponding position appears other cmd.<br>  ... Passed --  31.3  7 30530 2410<br>Test: InstallSnapshot RPC (3B) ...<br>2022/11/27 02:39:50 The corresponding position appears other cmd.<br>  ... Passed --   2.8  3  4327   63<br>Test: snapshot size is reasonable (3B) ...<br>  ... Passed --   9.1  3  6994  800<br>Test: ops complete fast enough (3B) ...<br>  ... Passed --  11.3  3  7798    0<br>Test: restarts, snapshots, one client (3B) ...<br>  ... Passed --  19.3  5 23214 1357<br>Test: restarts, snapshots, many clients (3B) ...<br>  ... Passed --  20.3  5 176897 21987<br>Test: unreliable net, snapshots, many clients (3B) ...<br>  ... Passed --  16.0  5 10725 1465<br>Test: unreliable net, restarts, snapshots, many clients (3B) ...<br>  ... Passed --  21.4  5 11779 1496<br>Test: unreliable net, restarts, partitions, snapshots, many clients (3B) ...<br>2022/11/27 02:41:30 The corresponding position appears other cmd.<br>  ... Passed --  27.4  5 10399 1173<br>Test: unreliable net, restarts, partitions, snapshots, random keys, many clients (3B) ...<br>2022/11/27 02:42:18 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:5 lastIncludedIndex:3484  <span class="hljs-built_in">log</span> len:1<br>2022/11/27 02:42:18 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:5 lastIncludedIndex:3484  <span class="hljs-built_in">log</span> len:1<br>2022/11/27 02:42:18 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:5 lastIncludedIndex:3484  <span class="hljs-built_in">log</span> len:1<br>  ... Passed --  30.3  7 39452 3402<br>PASS<br>ok      6.824/kvraft    412.917s<br></code></pre></td></tr></table></figure><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">test</span> -race<br>Test: one client (3A) ...<br>  ... Passed --  15.1  5  4525  655<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  26.1  3  4341    0<br>Test: many clients (3A) ...<br>  ... Passed --  15.7  5  6705  991<br>Test: unreliable net, many clients (3A) ...<br>  ... Passed --  16.4  5  6162  841<br>Test: concurrent append to same key, unreliable (3A) ...<br>  ... Passed --   1.0  3   255   52<br>Test: progress <span class="hljs-keyword">in</span> majority (3A) ...<br>  ... Passed --   0.4  5    47    2<br>Test: no progress <span class="hljs-keyword">in</span> minority (3A) ...<br>  ... Passed --   1.0  5   150    3<br>Test: completion after heal (3A) ...<br>  ... Passed --   1.0  5   601    3<br>Test: partitions, one client (3A) ...<br>  ... Passed --  22.4  5  5848  628<br>Test: partitions, many clients (3A) ...<br>  ... Passed --  23.2  5 14463 1048<br>Test: restarts, one client (3A) ...<br>  ... Passed --  19.6  5  5745  616<br>Test: restarts, many clients (3A) ...<br>  ... Passed --  21.5  5 11644  907<br>Test: unreliable net, restarts, many clients (3A) ...<br>  ... Passed --  21.3  5  6786  764<br>Test: restarts, partitions, many clients (3A) ...<br>  ... Passed --  27.6  5 13994  865<br>Test: unreliable net, restarts, partitions, many clients (3A) ...<br>  ... Passed --  29.3  5  7442  694<br>Test: unreliable net, restarts, partitions, random keys, many clients (3A) ...<br>  ... Passed --  30.9  7 15310  605<br>Test: InstallSnapshot RPC (3B) ...<br>2022/11/27 02:49:36 The corresponding position appears other cmd.<br>  ... Passed --   3.0  3   828   63<br>Test: snapshot size is reasonable (3B) ...<br>  ... Passed --   9.2  3  3160  800<br>Test: ops complete fast enough (3B) ...<br>  ... Passed --  11.4  3  3797    0<br>Test: restarts, snapshots, one client (3B) ...<br>  ... Passed --  20.0  5 10775 1352<br>Test: restarts, snapshots, many clients (3B) ...<br>  ... Passed --  20.9  5 28711 3907<br>Test: unreliable net, snapshots, many clients (3B) ...<br>  ... Passed --  15.9  5 10020 1375<br>Test: unreliable net, restarts, snapshots, many clients (3B) ...<br>  ... Passed --  20.7  5 10768 1405<br>Test: unreliable net, restarts, partitions, snapshots, many clients (3B) ...<br>  ... Passed --  28.9  5  9563 1046<br>Test: unreliable net, restarts, partitions, snapshots, random keys, many clients (3B) ...<br>2022/11/27 02:51:46 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:1 lastIncludedIndex:398  <span class="hljs-built_in">log</span> len:13<br>2022/11/27 02:51:57 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:4 lastIncludedIndex:1004  <span class="hljs-built_in">log</span> len:15<br>  ... Passed --  31.3  7 28028 1956<br>PASS<br>ok      6.824/kvraft    435.349s<br></code></pre></td></tr></table></figure><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> &#123;1..10000&#125;; <span class="hljs-keyword">do</span> go <span class="hljs-built_in">test</span> -run TestSpeed3A -race; <span class="hljs-keyword">done</span><br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  25.3  3  4321    0<br>PASS<br>ok      6.824/kvraft    26.307s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  25.2  3  4182    0<br>PASS<br>ok      6.824/kvraft    26.171s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  25.6  3  4179    0<br>PASS<br>ok      6.824/kvraft    26.610s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  25.2  3  4038    0<br>PASS<br>ok      6.824/kvraft    26.181s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  27.1  3  4337    0<br>PASS<br>ok      6.824/kvraft    28.115s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  26.4  3  3963    0<br>PASS<br>ok      6.824/kvraft    27.423s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  27.4  3  4364    0<br>PASS<br>ok      6.824/kvraft    28.387s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  26.9  3  4088    0<br>PASS<br>ok      6.824/kvraft    27.906s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  26.9  3  4210    0<br>PASS<br>ok      6.824/kvraft    27.884s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  27.3  3  3900    0<br>PASS<br>ok      6.824/kvraft    28.368s<br></code></pre></td></tr></table></figure><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> &#123;1..10&#125;; <span class="hljs-keyword">do</span> go <span class="hljs-built_in">test</span> -run TestSpeed3A; <span class="hljs-keyword">done</span><br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  6080    0<br>PASS<br>ok      6.824/kvraft    11.217s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.3  3  6626    0<br>PASS<br>ok      6.824/kvraft    11.293s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.3  3  6828    0<br>PASS<br>ok      6.824/kvraft    11.263s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  7360    0<br>PASS<br>ok      6.824/kvraft    11.232s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  10.9  3  5927    0<br>PASS<br>ok      6.824/kvraft    10.909s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.3  3  5564    0<br>PASS<br>ok      6.824/kvraft    11.305s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  5945    0<br>PASS<br>ok      6.824/kvraft    11.227s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.3  3  6776    0<br>PASS<br>ok      6.824/kvraft    11.307s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  5000    0<br>PASS<br>ok      6.824/kvraft    11.237s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  6073    0<br>PASS<br>ok      6.824/kvraft    11.203s<br></code></pre></td></tr></table></figure><p>不知道为什么，-race对TestSpeed3A测试影响很大，不加-race就是11s左右，加了-race选项就是25~30s，有时候也能跑到35s，不过正式测试也不加race，也就无所谓了。</p><h2 id="参考代码"><a href="#参考代码" class="headerlink" title="参考代码"></a>参考代码</h2><p>我一直试图使用select实现超时处理，但使用select就意味着需要使用通道传递返回信息，但如果为每一个请求创建一个通道，如何及时释放这些空间又是一个问题，没想到非常好的解决方案，就还是使用轮询的老方法。</p><p><strong>client.go</strong></p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> Clerk <span class="hljs-keyword">struct</span> &#123;<br>	servers []*labrpc.ClientEnd<br>	<span class="hljs-comment">// You will have to modify this struct.</span><br>	serverNumber  <span class="hljs-type">int</span>   <span class="hljs-comment">// 服务器节点数</span><br>	clientId      <span class="hljs-type">int64</span> <span class="hljs-comment">// 随机生成的客户端ID</span><br>	currentSeqNum <span class="hljs-type">int64</span> <span class="hljs-comment">// 当前序列号</span><br>	lastLeader    <span class="hljs-type">int</span>   <span class="hljs-comment">// 上次成功连接的leader</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">nrand</span><span class="hljs-params">()</span></span> <span class="hljs-type">int64</span> &#123;<br>	max := big.NewInt(<span class="hljs-type">int64</span>(<span class="hljs-number">1</span>) &lt;&lt; <span class="hljs-number">62</span>)<br>	bigx, _ := rand.Int(rand.Reader, max)<br>	x := bigx.Int64()<br>	<span class="hljs-keyword">return</span> x<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">MakeClerk</span><span class="hljs-params">(servers []*labrpc.ClientEnd)</span></span> *Clerk &#123;<br>	ck := <span class="hljs-built_in">new</span>(Clerk)<br>	ck.servers = servers<br>	<span class="hljs-comment">// You&#x27;ll have to add code here.</span><br>	ck.serverNumber = <span class="hljs-built_in">len</span>(servers)<br>	ck.clientId = nrand() <span class="hljs-comment">// 生成随机的ID</span><br>	ck.currentSeqNum = <span class="hljs-number">1</span>  <span class="hljs-comment">// 起始序列号为1</span><br>	<span class="hljs-keyword">return</span> ck<br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(ck *Clerk)</span></span> Get(key <span class="hljs-type">string</span>) <span class="hljs-type">string</span> &#123;<br>	args := GetArgs&#123;Key: key, ClientId: ck.clientId, SequenceNum: atomic.AddInt64(&amp;ck.currentSeqNum, <span class="hljs-number">1</span>)&#125;<br>	<span class="hljs-keyword">for</span> &#123;<br>		<span class="hljs-keyword">for</span> i := ck.lastLeader; i &lt; ck.lastLeader+ck.serverNumber; i++ &#123; <span class="hljs-comment">// 持续尝试不同节点</span><br>			reply := GetReply&#123;&#125;<br>			ok := ck.servers[i%ck.serverNumber].Call(<span class="hljs-string">&quot;KVServer.Get&quot;</span>, &amp;args, &amp;reply)<br>			<span class="hljs-keyword">if</span> ok &amp;&amp; reply.Status == ErrNoKey &#123;<br>				ck.lastLeader = i<br>				<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&quot;</span><br>			&#125;<br>			<span class="hljs-keyword">if</span> ok &amp;&amp; reply.Status == OK &#123;<br>				ck.lastLeader = i<br>				<span class="hljs-keyword">return</span> reply.Value<br>			&#125;<br>		&#125;<br>		time.Sleep(<span class="hljs-number">100</span> * time.Millisecond)<br>	&#125;<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(ck *Clerk)</span></span> PutAppend(key <span class="hljs-type">string</span>, value <span class="hljs-type">string</span>, op <span class="hljs-type">string</span>) &#123;<br>	args := PutAppendArgs&#123;Key: key, Value: value, Op: op, ClientId: ck.clientId, SequenceNum: atomic.AddInt64(&amp;ck.currentSeqNum, <span class="hljs-number">1</span>)&#125;<br>	<span class="hljs-keyword">for</span> &#123;<br>		<span class="hljs-keyword">for</span> i := ck.lastLeader; i &lt; ck.lastLeader+ck.serverNumber; i++ &#123; <span class="hljs-comment">// 持续尝试不同节点</span><br>			reply := PutAppendReply&#123;&#125;<br>			ok := ck.servers[i%ck.serverNumber].Call(<span class="hljs-string">&quot;KVServer.PutAppend&quot;</span>, &amp;args, &amp;reply)<br>			<span class="hljs-keyword">if</span> ok &amp;&amp; reply.Status == OK &#123;<br>				ck.lastLeader = i<br>				<span class="hljs-keyword">return</span><br>			&#125;<br>		&#125;<br>		time.Sleep(<span class="hljs-number">100</span> * time.Millisecond)<br>	&#125;<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(ck *Clerk)</span></span> Put(key <span class="hljs-type">string</span>, value <span class="hljs-type">string</span>) &#123;<br>	ck.PutAppend(key, value, <span class="hljs-string">&quot;Put&quot;</span>)<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(ck *Clerk)</span></span> Append(key <span class="hljs-type">string</span>, value <span class="hljs-type">string</span>) &#123;<br>	ck.PutAppend(key, value, <span class="hljs-string">&quot;Append&quot;</span>)<br>&#125;<br></code></pre></td></tr></table></figure><p><strong>common.go</strong></p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">const</span> ( <span class="hljs-comment">// 错误类型</span><br>	OK             = <span class="hljs-string">&quot;OK&quot;</span><br>	ErrNoKey       = <span class="hljs-string">&quot;ErrNoKey&quot;</span><br>	ErrWrongLeader = <span class="hljs-string">&quot;ErrWrongLeader&quot;</span><br>	ErrTimeout     = <span class="hljs-string">&quot;ErrTimeout&quot;</span><br>	ErrOldRequest  = <span class="hljs-string">&quot;ErrOldRequest&quot;</span> <span class="hljs-comment">// 未出现</span><br>	ErrLogFull     = <span class="hljs-string">&quot;ErrLogFull&quot;</span>    <span class="hljs-comment">// 未用到</span><br>)<br><br><span class="hljs-keyword">type</span> Err <span class="hljs-type">string</span><br><br><span class="hljs-keyword">type</span> ReqResult <span class="hljs-keyword">struct</span> &#123; <span class="hljs-comment">// 命令执行返回</span><br>	SequenceNum <span class="hljs-type">int64</span>  <span class="hljs-comment">// 命令序列号</span><br>	Status      Err    <span class="hljs-comment">// 命令执行状态</span><br>	Value       <span class="hljs-type">string</span> <span class="hljs-comment">// 命令执行结果</span><br>&#125;<br><br><span class="hljs-comment">// Put or Append</span><br><span class="hljs-keyword">type</span> PutAppendArgs <span class="hljs-keyword">struct</span> &#123;<br>	Key   <span class="hljs-type">string</span><br>	Value <span class="hljs-type">string</span><br>	Op    <span class="hljs-type">string</span> <span class="hljs-comment">// &quot;Put&quot; or &quot;Append&quot;</span><br>	<span class="hljs-comment">// 附带client id与序列号</span><br>	ClientId    <span class="hljs-type">int64</span><br>	SequenceNum <span class="hljs-type">int64</span><br>&#125;<br><br><span class="hljs-keyword">type</span> PutAppendReply <span class="hljs-keyword">struct</span> &#123;<br>	Status Err<br>&#125;<br><br><span class="hljs-keyword">type</span> GetArgs <span class="hljs-keyword">struct</span> &#123;<br>	Key <span class="hljs-type">string</span><br>	<span class="hljs-comment">// 附带client id与序列号</span><br>	ClientId    <span class="hljs-type">int64</span><br>	SequenceNum <span class="hljs-type">int64</span><br>&#125;<br><br><span class="hljs-keyword">type</span> GetReply <span class="hljs-keyword">struct</span> &#123;<br>	Status Err<br>	Value  <span class="hljs-type">string</span><br>&#125;<br></code></pre></td></tr></table></figure><p><strong>server.go</strong></p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">const</span> Debug = <span class="hljs-literal">true</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">DPrintf</span><span class="hljs-params">(format <span class="hljs-type">string</span>, a ...<span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> (n <span class="hljs-type">int</span>, err <span class="hljs-type">error</span>) &#123;<br>	<span class="hljs-keyword">if</span> Debug &#123;<br>		log.Printf(format, a...)<br>	&#125;<br>	<span class="hljs-keyword">return</span><br>&#125;<br><br><span class="hljs-keyword">const</span> (<br>	GeneralPollFrequency  = <span class="hljs-number">10</span> * time.Millisecond  <span class="hljs-comment">// 轮询时间</span><br>	TimeoutThreshold      = <span class="hljs-number">200</span> * time.Millisecond <span class="hljs-comment">// 超时阈值</span><br>	SnapshotPollFrequency = <span class="hljs-number">100</span> * time.Millisecond <span class="hljs-comment">// 快照轮询时间</span><br>)<br><br><span class="hljs-keyword">type</span> KVServer <span class="hljs-keyword">struct</span> &#123;<br>	mu           sync.Mutex<br>	me           <span class="hljs-type">int</span><br>	rf           *raft.Raft<br>	applyCh      <span class="hljs-keyword">chan</span> raft.ApplyMsg<br>	dead         <span class="hljs-type">int32</span> <span class="hljs-comment">// set by Kill()</span><br>	maxraftstate <span class="hljs-type">int</span>   <span class="hljs-comment">// snapshot if log grows this big</span><br><br>	persister         *raft.Persister<br>	kvData            <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]<span class="hljs-type">string</span>   <span class="hljs-comment">// 存放kv数据</span><br>	clientCache       <span class="hljs-keyword">map</span>[<span class="hljs-type">int64</span>]ReqResult <span class="hljs-comment">// 存放各个客户端最新结果</span><br>	commitIndex       <span class="hljs-type">int</span>                 <span class="hljs-comment">// server当前commit index</span><br>	lastSnapshotIndex <span class="hljs-type">int</span>                 <span class="hljs-comment">// 上次快照的commit index</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> Get(args *GetArgs, reply *GetReply) &#123;<br>	requestBegin := time.Now()<br>	kv.mu.Lock()<br>	index, _, isLeader := kv.rf.Start(*args) <span class="hljs-comment">// 开始协商用户请求</span><br>	kv.mu.Unlock()<br>	<span class="hljs-keyword">if</span> !isLeader &#123; <span class="hljs-comment">// 当前节点不是leader节点，返回错误</span><br>		reply.Status = ErrWrongLeader<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	<span class="hljs-keyword">for</span> &#123;<br>		kv.mu.Lock()<br>		outCycle := <span class="hljs-literal">false</span><br>		cache := kv.clientCache[args.ClientId]<br>		<span class="hljs-keyword">if</span> cache.SequenceNum &lt; args.SequenceNum &#123; <span class="hljs-comment">// 仍未执行相应请求</span><br>			<span class="hljs-keyword">if</span> kv.commitIndex &gt;= index &#123; <span class="hljs-comment">// 相应位置出现了其他的命令</span><br>				reply.Status = ErrWrongLeader<br>				outCycle = <span class="hljs-literal">true</span><br>			&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> time.Since(requestBegin) &gt; TimeoutThreshold &#123; <span class="hljs-comment">// 等待超时</span><br>				reply.Status = ErrTimeout<br>				outCycle = <span class="hljs-literal">true</span><br>			&#125;<br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cache.SequenceNum == args.SequenceNum &#123; <span class="hljs-comment">// 请求执行成功</span><br>			reply.Status = cache.Status<br>			reply.Value = cache.Value<br>			outCycle = <span class="hljs-literal">true</span><br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cache.SequenceNum &gt; args.SequenceNum &#123;<br>			reply.Status = ErrOldRequest<br>			outCycle = <span class="hljs-literal">true</span><br>		&#125;<br>		kv.mu.Unlock()<br>		<span class="hljs-keyword">if</span> outCycle &#123;<br>			<span class="hljs-keyword">return</span><br>		&#125;<br>		time.Sleep(GeneralPollFrequency)<br>	&#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> PutAppend(args *PutAppendArgs, reply *PutAppendReply) &#123;<br>	requestBegin := time.Now()<br>	kv.mu.Lock()<br>	index, _, isLeader := kv.rf.Start(*args) <span class="hljs-comment">// 开始协商用户请求</span><br>	kv.mu.Unlock()<br>	<span class="hljs-keyword">if</span> !isLeader &#123;<br>		reply.Status = ErrWrongLeader<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	<span class="hljs-keyword">for</span> &#123;<br>		kv.mu.Lock()<br>		outCycle := <span class="hljs-literal">false</span><br>		cache := kv.clientCache[args.ClientId]<br>		<span class="hljs-keyword">if</span> cache.SequenceNum &lt; args.SequenceNum &#123; <span class="hljs-comment">// 仍未执行相应请求</span><br>			<span class="hljs-keyword">if</span> kv.commitIndex &gt;= index &#123; <span class="hljs-comment">// 相应位置出现了其他的命令</span><br>				reply.Status = ErrWrongLeader<br>				outCycle = <span class="hljs-literal">true</span><br>			&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> time.Since(requestBegin) &gt; TimeoutThreshold &#123; <span class="hljs-comment">// 等待超时</span><br>				reply.Status = ErrTimeout<br>				outCycle = <span class="hljs-literal">true</span><br>			&#125;<br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cache.SequenceNum == args.SequenceNum &#123; <span class="hljs-comment">// 请求执行成功</span><br>			reply.Status = OK<br>			outCycle = <span class="hljs-literal">true</span><br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cache.SequenceNum &gt; args.SequenceNum &#123;<br>			reply.Status = ErrOldRequest<br>			outCycle = <span class="hljs-literal">true</span><br>		&#125;<br>		kv.mu.Unlock()<br>		<span class="hljs-keyword">if</span> outCycle &#123;<br>			<span class="hljs-keyword">return</span><br>		&#125;<br>		time.Sleep(GeneralPollFrequency)<br>	&#125;<br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> Kill() &#123;<br>	atomic.StoreInt32(&amp;kv.dead, <span class="hljs-number">1</span>)<br>	kv.rf.Kill()<br>	<span class="hljs-comment">// Your code here, if desired.</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> killed() <span class="hljs-type">bool</span> &#123;<br>	z := atomic.LoadInt32(&amp;kv.dead)<br>	<span class="hljs-keyword">return</span> z == <span class="hljs-number">1</span><br>&#125;<br><br><span class="hljs-comment">// 接受raft消息</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> receiveTask() &#123;<br>	<span class="hljs-keyword">for</span> !kv.killed() &#123;<br>		msg := &lt;-kv.applyCh<br>		kv.mu.Lock()<br>		<span class="hljs-keyword">if</span> msg.CommandValid &#123; <span class="hljs-comment">// 普通的日志消息</span><br>			kv.commitIndex = msg.CommandIndex<br>			<span class="hljs-keyword">switch</span> data := msg.Command.(<span class="hljs-keyword">type</span>) &#123;<br>			<span class="hljs-keyword">case</span> GetArgs:<br>				cache := kv.clientCache[data.ClientId]    <span class="hljs-comment">// 查看相应客户端缓存</span><br>				<span class="hljs-keyword">if</span> cache.SequenceNum &lt; data.SequenceNum &#123; <span class="hljs-comment">// 执行请求，自动覆盖之前的结果</span><br>					value, ok := kv.kvData[data.Key]<br>					<span class="hljs-keyword">if</span> !ok &#123; <span class="hljs-comment">// 判断是否存在相应key，返回错误码</span><br>						kv.clientCache[data.ClientId] = ReqResult&#123;SequenceNum: data.SequenceNum, Status: ErrNoKey&#125;<br>					&#125; <span class="hljs-keyword">else</span> &#123;<br>						kv.clientCache[data.ClientId] = ReqResult&#123;SequenceNum: data.SequenceNum, Status: OK, Value: value&#125;<br>					&#125;<br>				&#125;<br>			<span class="hljs-keyword">case</span> PutAppendArgs:<br>				cache := kv.clientCache[data.ClientId]    <span class="hljs-comment">// 查看相应客户端缓存</span><br>				<span class="hljs-keyword">if</span> cache.SequenceNum &lt; data.SequenceNum &#123; <span class="hljs-comment">// 执行请求，自动覆盖之前的结果</span><br>					<span class="hljs-keyword">if</span> data.Op == <span class="hljs-string">&quot;Put&quot;</span> &#123;<br>						kv.kvData[data.Key] = data.Value<br>					&#125; <span class="hljs-keyword">else</span> &#123;<br>						kv.kvData[data.Key] += data.Value<br>					&#125;<br><br>					kv.clientCache[data.ClientId] = ReqResult&#123;SequenceNum: data.SequenceNum, Status: OK&#125;<br>				&#125;<br>			&#125;<br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> msg.SnapshotValid &#123; <span class="hljs-comment">// 快照消息</span><br>			r := bytes.NewBuffer(msg.Snapshot)<br>			d := labgob.NewDecoder(r)<br>			<span class="hljs-keyword">var</span> commitIndex <span class="hljs-type">int</span><br>			<span class="hljs-keyword">var</span> clientCache <span class="hljs-keyword">map</span>[<span class="hljs-type">int64</span>]ReqResult<br>			<span class="hljs-keyword">var</span> kvData <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]<span class="hljs-type">string</span><br>			<span class="hljs-keyword">if</span> d.Decode(&amp;commitIndex) != <span class="hljs-literal">nil</span> || d.Decode(&amp;clientCache) != <span class="hljs-literal">nil</span> || d.Decode(&amp;kvData) != <span class="hljs-literal">nil</span> &#123;<br>				log.Panicf(<span class="hljs-string">&quot;snapshot decode error&quot;</span>)<br>			&#125; <span class="hljs-keyword">else</span> &#123;<br>				kv.commitIndex = commitIndex<br>				kv.clientCache = clientCache<br>				kv.kvData = kvData<br>				<span class="hljs-comment">// 更新lastSnapshotIndex</span><br>				kv.lastSnapshotIndex = commitIndex<br>			&#125;<br>		&#125;<br>		<span class="hljs-comment">// 检查raft state大小，生成快照</span><br>		<span class="hljs-keyword">if</span> kv.maxraftstate &gt; <span class="hljs-number">0</span> &amp;&amp; kv.persister.RaftStateSize() &gt; kv.maxraftstate &amp;&amp; kv.commitIndex &gt; kv.lastSnapshotIndex &#123;<br>			w := <span class="hljs-built_in">new</span>(bytes.Buffer)<br>			e := labgob.NewEncoder(w)<br>			e.Encode(kv.commitIndex)<br>			e.Encode(kv.clientCache)<br>			e.Encode(kv.kvData)<br>			snapshot := w.Bytes()<br>			kv.rf.Snapshot(kv.commitIndex, snapshot)<br>			kv.lastSnapshotIndex = kv.commitIndex<br>		&#125;<br>		kv.mu.Unlock()<br>	&#125;<br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">StartKVServer</span><span class="hljs-params">(servers []*labrpc.ClientEnd, me <span class="hljs-type">int</span>, persister *raft.Persister, maxraftstate <span class="hljs-type">int</span>)</span></span> *KVServer &#123;<br>	<span class="hljs-comment">// call labgob.Register on structures you want</span><br>	<span class="hljs-comment">// Go&#x27;s RPC library to marshall/unmarshall.</span><br>	labgob.Register(GetArgs&#123;&#125;)<br>	labgob.Register(PutAppendArgs&#123;&#125;)<br><br>	kv := <span class="hljs-built_in">new</span>(KVServer)<br>	kv.me = me<br>	kv.maxraftstate = maxraftstate<br><br>	<span class="hljs-comment">// You may need initialization code here.</span><br><br>	kv.applyCh = <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> raft.ApplyMsg)<br>	kv.rf = raft.Make(servers, me, persister, kv.applyCh)<br><br>	<span class="hljs-comment">// You may need initialization code here.</span><br>	kv.kvData = <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]<span class="hljs-type">string</span>)<br>	kv.clientCache = <span class="hljs-keyword">map</span>[<span class="hljs-type">int64</span>]ReqResult&#123;&#125;<br>	kv.persister = persister<br>	<span class="hljs-keyword">go</span> kv.receiveTask()<br>	<span class="hljs-keyword">return</span> kv<br>&#125;<br></code></pre></td></tr></table></figure></div><hr><div><div class="post-metas my-3"><div class="post-meta mr-3 d-flex align-items-center"><i class="iconfont icon-category"></i> <span class="category-chains"><span class="category-chain"><a href="/categories/%E5%9B%BD%E5%A4%96%E8%AF%BE%E7%A8%8B%E5%AE%9E%E9%AA%8C/" class="category-chain-item">国外课程实验</a></span></span></div><div class="post-meta"><i class="iconfont icon-tags"></i> <a href="/tags/Key-Value-6-824-lab3-kvraft/" class="print-no-link">#Key/Value 6.824 lab3 kvraft</a></div></div><div class="post-prevnext my-3"><article class="post-prev col-6"><a href="/blog/mit6.824%202022%20lab4.html" title="mit6.824 2022 lab4"><i class="iconfont icon-arrowleft"></i> <span class="hidden-mobile">mit6.824 2022 lab4</span> <span class="visible-mobile">上一篇</span></a></article><article class="post-next col-6"><a href="/blog/mit6.824%202022%20lab2.html" title="mit6.824 2022 lab2"><span class="hidden-mobile">mit6.824 2022 lab2</span> <span class="visible-mobile">下一篇</span> <i class="iconfont icon-arrowright"></i></a></article></div></div><article id="comments" lazyload><div id="valine"></div><script type="text/javascript">Fluid.utils.loadComments("#valine",(function(){Fluid.utils.createScript("https://lib.baomitu.com/valine/1.5.1/Valine.min.js",(function(){var e=Object.assign({appId:"uU0wegCOTLXqtIgWmhAD3MFq-gzGzoHsz",appKey:"0e2MMh7ddBCGGytOe9UEy5NP",path:"window.location.pathname",placeholder:null,avatar:"retro",meta:["nick","mail"],requiredFields:[],pageSize:10,lang:"zh-CN",highlight:!0,recordIP:!0,serverURLs:"https://uu0wegco.lc-cn-n1-shared.com",emojiCDN:null,emojiMaps:null,enableQQ:!1},{el:"#valine",path:window.location.pathname});new Valine(e),Fluid.utils.waitElementVisible("#valine .vcontent",()=>{var e="#valine .vcontent img:not(.vemoji)";Fluid.plugins.imageCaption(e),Fluid.plugins.fancyBox(e)})}))}))</script><noscript>Please enable JavaScript to view the comments</noscript></article></article></div></div></div><div class="side-col d-none d-lg-block col-lg-2"><aside class="sidebar" style="margin-left:-1rem"><div id="toc"><p class="toc-header"><i class="iconfont icon-list"></i> <span>目录</span></p><div class="toc-body" id="toc-body"></div></div></aside></div></div></div><a id="scroll-top-button" aria-label="TOP" href="#" role="button"><i class="iconfont icon-arrowup" aria-hidden="true"></i></a><div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable modal-lg" role="document"><div class="modal-content"><div class="modal-header text-center"><h4 class="modal-title w-100 font-weight-bold">搜索</h4><button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body mx-3"><div class="md-form mb-5"><input type="text" id="local-search-input" class="form-control validate"> <label data-error="x" data-success="v" for="local-search-input">关键词</label></div><div class="list-group" id="local-search-result"></div></div></div></div></div></main><footer><div class="footer-inner"><div class="footer-content"><a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a></div><div class="statistics"><span id="leancloud-site-pv-container" style="display:none">总访问量 <span id="leancloud-site-pv"></span> 次 </span><span id="leancloud-site-uv-container" style="display:none">总访客数 <span id="leancloud-site-uv"></span> 人</span></div></div></footer><script src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js"></script><link rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css"><script>NProgress.configure({showSpinner:!1,trickleSpeed:100}),NProgress.start(),window.addEventListener("load",(function(){NProgress.done()}))</script><script src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js"></script><script src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js"></script><script src="/js/events.js"></script><script src="/js/plugins.js"></script><script src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js"></script><script>!function(t,e){var i=Fluid.plugins.typing,n=e.getElementById("subtitle");n&&i&&i(n.getAttribute("data-typed-text"))}(window,document)</script><script src="/js/img-lazyload.js"></script><script>Fluid.utils.createScript("https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js",(function(){var t=jQuery("#toc");if(0!==t.length&&window.tocbot){var i=jQuery("#board-ctn").offset().top;window.tocbot.init(Object.assign({tocSelector:"#toc-body",contentSelector:".markdown-body",linkClass:"tocbot-link",activeLinkClass:"tocbot-active-link",listClass:"tocbot-list",isCollapsedClass:"tocbot-is-collapsed",collapsibleClass:"tocbot-is-collapsible",scrollSmooth:!0,includeTitleTags:!0,headingsOffset:-i},CONFIG.toc)),t.find(".toc-list-item").length>0&&t.css("visibility","visible"),Fluid.events.registerRefreshCallback((function(){if("tocbot"in window){tocbot.refresh();var t=jQuery("#toc");if(0===t.length||!tocbot)return;t.find(".toc-list-item").length>0&&t.css("visibility","visible")}}))}}))</script><script src="https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js"></script><script>Fluid.plugins.codeWidget()</script><script>Fluid.utils.createScript("https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js",(function(){window.anchors.options={placement:CONFIG.anchorjs.placement,visible:CONFIG.anchorjs.visible},CONFIG.anchorjs.icon&&(window.anchors.options.icon=CONFIG.anchorjs.icon);var n=(CONFIG.anchorjs.element||"h1,h2,h3,h4,h5,h6").split(","),o=[];for(var s of n)o.push(".markdown-body > "+s.trim());"left"===CONFIG.anchorjs.placement&&(window.anchors.options.class="anchorjs-link-left"),window.anchors.add(o.join(", ")),Fluid.events.registerRefreshCallback((function(){if("anchors"in window){anchors.removeAll();var n=(CONFIG.anchorjs.element||"h1,h2,h3,h4,h5,h6").split(","),o=[];for(var s of n)o.push(".markdown-body > "+s.trim());"left"===CONFIG.anchorjs.placement&&(anchors.options.class="anchorjs-link-left"),anchors.add(o.join(", "))}}))}))</script><script>Fluid.utils.createScript("https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js",(function(){Fluid.plugins.fancyBox()}))</script><script>Fluid.plugins.imageCaption()</script><script defer src="/js/leancloud.js"></script><script src="/js/local-search.js"></script><script src="/js/boot.js"></script><noscript><div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div></noscript></body></html>
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/nano-1.jpg">
+  <link rel="icon" href="/img/nano-1.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="最佳损友1020">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="汇总博客：MIT6.824 2022 推荐博客：如何的才能更好地学习 MIT6.824 分布式系统课程？SOFAJRaft 日志复制 - pipeline 实现剖析 | SOFAJRaft 实现原理raft在处理用户请求超时的时候，如何避免重试的请求被多次应用？一致性模型与共识算法  lab3总体来说比lab2简单很多（至少通过一次全部测试简单很多），简单记录一下实验中遇到的问题。 3As">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mit6.824 2022 lab3">
+<meta property="og:url" content="https://www.jiasun.top/blog/mit6.824%202022%20lab3.html">
+<meta property="og:site_name" content="最佳损友1020’s Blog">
+<meta property="og:description" content="汇总博客：MIT6.824 2022 推荐博客：如何的才能更好地学习 MIT6.824 分布式系统课程？SOFAJRaft 日志复制 - pipeline 实现剖析 | SOFAJRaft 实现原理raft在处理用户请求超时的时候，如何避免重试的请求被多次应用？一致性模型与共识算法  lab3总体来说比lab2简单很多（至少通过一次全部测试简单很多），简单记录一下实验中遇到的问题。 3As">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/40c2aa6ca58546a6803cbdb22bfe5334.png">
+<meta property="article:published_time" content="2022-11-23T02:49:27.000Z">
+<meta property="article:modified_time" content="2023-10-31T14:45:59.224Z">
+<meta property="article:author" content="最佳损友1020">
+<meta property="article:tag" content="Key&#x2F;Value 6.824 lab3 kvraft">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/40c2aa6ca58546a6803cbdb22bfe5334.png">
+  
+  
+  
+  <title>mit6.824 2022 lab3 - 最佳损友1020’s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/csdn.css">
+<link rel="stylesheet" href="/css/top.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.jiasun.top","root":"/","version":"1.9.5-a","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":4},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"n227FxNJCTncCeI3DrGx7MnC-gzGzoHsz","app_key":"ljkRZDiTtVmjn5mpaQmpFqgv","server_url":"https://n227fxnj.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>最佳损友1020</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="mit6.824 2022 lab3"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-11-23 10:49" pubdate>
+          2022年11月23日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          20k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          165 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">mit6.824 2022 lab3</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+
+
+<p>汇总博客：<a href="https://www.jiasun.top/blog/mit6.824%202022.html">MIT6.824 2022</a></p>
+<p>推荐博客：<br><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/29597104/answer/128443409">如何的才能更好地学习 MIT6.824 分布式系统课程？</a><br><a target="_blank" rel="noopener" href="https://www.sofastack.tech/blog/sofa-jraft-pipeline-principle/">SOFAJRaft 日志复制 - pipeline 实现剖析 | SOFAJRaft 实现原理</a><br><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/278551592">raft在处理用户请求超时的时候，如何避免重试的请求被多次应用？</a><br><a target="_blank" rel="noopener" href="https://tanxinyu.work/consistency-and-consensus/#etcd-%E7%9A%84-Raft">一致性模型与共识算法</a> </p>
+<p>lab3总体来说比lab2简单很多（至少通过一次全部测试简单很多），简单记录一下实验中遇到的问题。</p>
+<h2 id="3A"><a href="#3A" class="headerlink" title="3A"></a>3A</h2><p>step 1：通过TestBasic3A测试<br>基本思路：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go">Clerk.PutAppend <br>	KVServer.PutAppend<br>		Raft.Start<br>		定时轮询，查看相应请求是否执行，获取请求结果<br>receiveTask：<br>	接收raft msg<br>	执行请求，修改数据结构，存入请求执行结果<br></code></pre></td></tr></table></figure>
+
+<p>step2：处理失败与重复执行问题<br>处理失败只需要加一个检测机制与超时机制</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs go">Clerk.PutAppend <br>	KVServer.PutAppend<br>		Raft.Start<br>		定时轮询，查看相应请求是否执行，获取请求结果<br>		检测相应位置是否出现了其他的命令（实际上就是比较commit index与cmd index），返回leader错误<br>		若超过一段时间请求仍未执行，返回超时错误<br>receiveTask：<br>	接收raft msg<br>	执行请求，修改数据结构，存入请求执行结果<br></code></pre></td></tr></table></figure>
+<p>client在接收到RPC回复leader错误&#x2F;超时错误后尝试其他server。<br>由于理解错了以下这段文本的意思，在刚开始测试的时候没有加入超时机制</p>
+<blockquote>
+<p>One way to do this is for the server to detect that it has lost leadership, by noticing that a different request has appeared at the index returned by Start(), or that Raft’s term has changed. If the ex-leader is partitioned by itself, it won’t know about new leaders; but any client in the same partition won’t be able to talk to a new leader either, so it’s OK in this case for the server and client to wait indefinitely until the partition heals.</p>
+</blockquote>
+<p>wait indefinitely 的前提条件是ex-leader被置于一个分区，<strong>且</strong>client也无法与其他server通信。<br>在运行TestManyPartitionsOneClient3A测试时，由于没有超时机制，sever一直等待raft执行刚下发的命令，但相应位置一直没有刚下发的命令，也没有其他命令，就卡死了。这时候client应该与另一个分区的leader通信，才能正常执行请求。</p>
+<p>重复执行问题与及时释放内存实际上可以一起实现，最关键是理解It’s OK to assume that a client will make only one call into a Clerk at a time.的含义。我将它理解成raft已提交日志中一旦出现新的请求，旧的请求结果就不用保存了，重复执行策略只针对一段时间重复出现的请求。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs go">commit log只可能出现<br><span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">1</span><br>commit log不可能出现<br><span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">1</span> <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
+<p>client相关的数据结构见<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/278551592">raft在处理用户请求超时的时候，如何避免重试的请求被多次应用？</a>，不过由于client的make only one call前提，就不需要最大成功回复的proposal的序列号了。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> ReqResult <span class="hljs-keyword">struct</span> &#123; <span class="hljs-comment">// 命令执行返回</span><br>	SequenceNum <span class="hljs-type">int64</span>  <span class="hljs-comment">// 命令序列号</span><br>	Status      Err    <span class="hljs-comment">// 命令执行状态</span><br>	Value       <span class="hljs-type">string</span> <span class="hljs-comment">// 命令执行结果</span><br>&#125;<br>clientCache       <span class="hljs-keyword">map</span>[<span class="hljs-type">int64</span>]ReqResult <span class="hljs-comment">// 存放各个客户端最新结果</span><br></code></pre></td></tr></table></figure>
+<p>使用一个map数据结构存放各个客户端最新请求的执行结果，如果接收raft消息后发现相应SequenceNum等于cache的SequenceNum，就不再执行该请求；如果大于则执行相应请求，此时也相当于释放了之前请求结果的内存。</p>
+<h2 id="3B"><a href="#3B" class="headerlink" title="3B"></a>3B</h2><p>这部分需要回答两个问题：在什么时候检查raftstate大小并生成快照？快照中需要包含什么数据？<br>一：可以在Get或PutAppend中检查raftstate大小吗？ 答案是不行，非leader的这两个RPC一般不会被调用，有可能会超过maxraftstate。所以我选择开启一个协程，定时检查raftstate大小并生成快照。(后面又改成了在receiveTask中检查，省的另开一个协程）<br>二：避免生成无用的快照<br>在lab2的Snapshot中我比较了当前快照索引与函数的快照索引</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(rf *Raft)</span></span> Snapshot(index <span class="hljs-type">int</span>, snapshot []<span class="hljs-type">byte</span>) &#123;<br>	rf.mu.Lock()<br>	<span class="hljs-keyword">defer</span> rf.mu.Unlock()<br>	<span class="hljs-keyword">if</span> index &lt;= rf.lastIncludedIndex &#123; <span class="hljs-comment">// 至少得比当前快照更新</span><br>		WPrintf(<span class="hljs-string">&quot;server%v no use snapshot.this index:%v last index:%v\n&quot;</span>, rf.me, rf.lastIncludedIndex, index)<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	<span class="hljs-comment">// rf.log = rf.log[index-rf.lastIncludedIndex:]</span><br>	rf.log = <span class="hljs-built_in">append</span>([]logEntry&#123;&#125;, rf.log[index-rf.lastIncludedIndex:]...)<br>	rf.lastIncludedIndex = index<br>	rf.lastIncludedTerm = rf.log[<span class="hljs-number">0</span>].Term <span class="hljs-comment">// 日志0位的term</span><br>	rf.snapshot = snapshot<br>	rf.persistStateAndSnapshot()<br>	<span class="hljs-comment">// DPrintf(&quot;generate Snapshot. server id:%v Snapshot index:%v  log len:%v   commmit index:%v apply index:%v&quot;, rf.me, index, len(rf.log), rf.commitIndex, rf.lastApplied)</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在3B测试中打印了一堆no use snapshot，并且两个索引一模一样，故记录上次生成快照时的索引大小，仅仅在commit index大于lastSnapshotIndex时才生成快照。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">if</span> kv.persister.RaftStateSize() &gt; kv.snapshotThreshold &amp;&amp; kv.commitIndex &gt; kv.lastSnapshotIndex<br></code></pre></td></tr></table></figure>
+<p>由此又考虑了另外一个问题，快照只能减小由commit log带来的空间开销，如果log中的日志全部为未提交，那么再怎么生成快照也没用。所以存在一种可能，不断进入的client请求可以让raftstate超过maxraftstate，故我在900时就开始生成快照（max是1000），并且在请求加入时判断当前raftstate是否超过maxraftstate，如果超过就等待。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">for</span> !kv.killed() &#123;<br>	kv.mu.Lock()<br>	_, isLeader := kv.rf.GetState()<br>	isLogFull := kv.persister.RaftStateSize() &gt; kv.maxraftstate<br>	kv.mu.Unlock()<br>	<span class="hljs-keyword">if</span> !isLogFull &amp;&amp; isLeader &#123;<br>		<span class="hljs-keyword">break</span><br>	&#125;<br>	<span class="hljs-keyword">if</span> !isLeader &#123;<br>		reply.Status = ErrWrongLeader<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	<span class="hljs-keyword">if</span> isLogFull &amp;&amp; time.Since(requestBegin) &gt; TimeoutThreshold &#123;<br>		reply.Status = ErrLogFull<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	time.Sleep(GeneralPollFrequency)<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>但运行TestPersistConcurrent3A测试卡死了，查看状态后发现leader处于如下状态<br><img src="https://img-blog.csdnimg.cn/40c2aa6ca58546a6803cbdb22bfe5334.png" srcset="/img/loading.gif" lazyload><br>虽然match index全部为847，但不是当前term，commit index无法更新，但raftstate（1027）已经大于max（1000），请求又无法加入，就一直卡死了。所以看之前有个建议非常好，每当节点被选举为leader，就向日志中加入一条空指令，这样就能最快地更新commit index。<br>    最后我将以上这段代码删掉了，但实际上也不会报错，因为每个client一段时间只会执行一个请求，请求的key value又比较小，且client的数目比较少，而且在最后测试时比较的不是maxraftstate，而是8*maxraftstate。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// Maximum log size across all servers</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(cfg *config)</span></span> LogSize() <span class="hljs-type">int</span> &#123;<br>	logsize := <span class="hljs-number">0</span><br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; cfg.n; i++ &#123;<br>		n := cfg.saved[i].RaftStateSize()<br>		<span class="hljs-keyword">if</span> n &gt; logsize &#123;<br>			logsize = n<br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">return</span> logsize<br>&#125;<br><br><span class="hljs-keyword">if</span> maxraftstate &gt; <span class="hljs-number">0</span> &#123;<br>	<span class="hljs-comment">// Check maximum after the servers have processed all client</span><br>	<span class="hljs-comment">// requests and had time to checkpoint.</span><br>	sz := cfg.LogSize()<br>	<span class="hljs-keyword">if</span> sz &gt; <span class="hljs-number">8</span>*maxraftstate &#123;<br>		t.Fatalf(<span class="hljs-string">&quot;logs were not trimmed (%v &gt; 8*%v)&quot;</span>, sz, maxraftstate)<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+<p>三：为了避免重复执行请求，在生成快照时需要将client cache编码进去</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> generateSnapshotTask() &#123;<br>	<span class="hljs-keyword">for</span> !kv.killed() &#123;<br>		kv.mu.Lock()<br>		<span class="hljs-keyword">if</span> kv.persister.RaftStateSize() &gt; kv.maxraftstate &amp;&amp; kv.commitIndex &gt; kv.lastSnapshotIndex &#123;<br>			w := <span class="hljs-built_in">new</span>(bytes.Buffer)<br>			e := labgob.NewEncoder(w)<br>			e.Encode(kv.commitIndex)<br>			e.Encode(kv.clientCache)<br>			e.Encode(kv.kvData)<br>			snapshot := w.Bytes()<br>			kv.rf.Snapshot(kv.commitIndex, snapshot)<br>			kv.lastSnapshotIndex = kv.commitIndex<br>		&#125;<br>		kv.mu.Unlock()<br>		time.Sleep(SnapshotPollFrequency)<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在整个实验中我都没有用到term，只用了commit index。</p>
+<p><strong>复用RPC回复警告</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs go">Test: one client (<span class="hljs-number">3</span>A) ...<br>labgob warning: Decoding into a non-<span class="hljs-keyword">default</span> variable/field Err may not work<br>  ... Passed --  <span class="hljs-number">15.1</span>  <span class="hljs-number">5</span>  <span class="hljs-number">7809</span>  <span class="hljs-number">722</span><br><span class="hljs-comment">// 不好的  </span><br>    args := GetArgs&#123;Key: key&#125;<br>    reply := GetReply&#123;&#125;<br>    <span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; ; i = (i + <span class="hljs-number">1</span>) % ck.serverNumber &#123;<br>		ok := ck.servers[i].Call(<span class="hljs-string">&quot;KVServer.Get&quot;</span>, &amp;args, &amp;reply)<br><span class="hljs-comment">// 推荐的      </span><br>	args := GetArgs&#123;Key: key&#125;<br>	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; ; i = (i + <span class="hljs-number">1</span>) % ck.serverNumber &#123;<br>		reply := GetReply&#123;&#125;<br>         ok := ck.servers[i].Call(<span class="hljs-string">&quot;KVServer.Get&quot;</span>, &amp;args, &amp;reply)<br><br><span class="hljs-comment">// this warning typically arises if code re-uses the same RPC reply</span><br><span class="hljs-comment">// variable for multiple RPC calls, or if code restores persisted</span><br><span class="hljs-comment">// state into variable that already have non-default values.</span><br>fmt.Printf(<span class="hljs-string">&quot;labgob warning: Decoding into a non-default variable/field %v may not work\n&quot;</span>,<br>           what)<br></code></pre></td></tr></table></figure>
+
+<h2 id="实验结果与speed问题"><a href="#实验结果与speed问题" class="headerlink" title="实验结果与speed问题"></a>实验结果与speed问题</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">test</span> <br>Test: one client (3A) ...<br>  ... Passed --  15.1  5 10613 1350<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  6710    0<br>Test: many clients (3A) ...<br>  ... Passed --  15.3  5 26714 3478<br>Test: unreliable net, many clients (3A) ...<br>  ... Passed --  16.0  5 10565 1510<br>Test: concurrent append to same key, unreliable (3A) ...<br>  ... Passed --   0.9  3   271   52<br>Test: progress <span class="hljs-keyword">in</span> majority (3A) ...<br>  ... Passed --   0.6  5    66    2<br>Test: no progress <span class="hljs-keyword">in</span> minority (3A) ...<br>  ... Passed --   1.0  5   158    3<br>Test: completion after heal (3A) ...<br>  ... Passed --   1.0  5    63    3<br>Test: partitions, one client (3A) ...<br>  ... Passed --  22.8  5 15661 1252<br>Test: partitions, many clients (3A) ...<br>  ... Passed --  22.9  5 106202 3216<br>Test: restarts, one client (3A) ...<br>  ... Passed --  19.4  5 22991 1347<br>Test: restarts, many clients (3A) ...<br>  ... Passed --  20.1  5 72489 3498<br>Test: unreliable net, restarts, many clients (3A) ...<br>  ... Passed --  21.6  5 11451 1425<br>Test: restarts, partitions, many clients (3A) ...<br>  ... Passed --  26.8  5 69832 3170<br>Test: unreliable net, restarts, partitions, many clients (3A) ...<br>  ... Passed --  28.5  5 10220 1079<br>Test: unreliable net, restarts, partitions, random keys, many clients (3A) ...<br>2022/11/27 02:39:42 The corresponding position appears other cmd.<br>  ... Passed --  31.3  7 30530 2410<br>Test: InstallSnapshot RPC (3B) ...<br>2022/11/27 02:39:50 The corresponding position appears other cmd.<br>  ... Passed --   2.8  3  4327   63<br>Test: snapshot size is reasonable (3B) ...<br>  ... Passed --   9.1  3  6994  800<br>Test: ops complete fast enough (3B) ...<br>  ... Passed --  11.3  3  7798    0<br>Test: restarts, snapshots, one client (3B) ...<br>  ... Passed --  19.3  5 23214 1357<br>Test: restarts, snapshots, many clients (3B) ...<br>  ... Passed --  20.3  5 176897 21987<br>Test: unreliable net, snapshots, many clients (3B) ...<br>  ... Passed --  16.0  5 10725 1465<br>Test: unreliable net, restarts, snapshots, many clients (3B) ...<br>  ... Passed --  21.4  5 11779 1496<br>Test: unreliable net, restarts, partitions, snapshots, many clients (3B) ...<br>2022/11/27 02:41:30 The corresponding position appears other cmd.<br>  ... Passed --  27.4  5 10399 1173<br>Test: unreliable net, restarts, partitions, snapshots, random keys, many clients (3B) ...<br>2022/11/27 02:42:18 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:5 lastIncludedIndex:3484  <span class="hljs-built_in">log</span> len:1<br>2022/11/27 02:42:18 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:5 lastIncludedIndex:3484  <span class="hljs-built_in">log</span> len:1<br>2022/11/27 02:42:18 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:5 lastIncludedIndex:3484  <span class="hljs-built_in">log</span> len:1<br>  ... Passed --  30.3  7 39452 3402<br>PASS<br>ok      6.824/kvraft    412.917s<br></code></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><code class="hljs bash">go <span class="hljs-built_in">test</span> -race<br>Test: one client (3A) ...<br>  ... Passed --  15.1  5  4525  655<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  26.1  3  4341    0<br>Test: many clients (3A) ...<br>  ... Passed --  15.7  5  6705  991<br>Test: unreliable net, many clients (3A) ...<br>  ... Passed --  16.4  5  6162  841<br>Test: concurrent append to same key, unreliable (3A) ...<br>  ... Passed --   1.0  3   255   52<br>Test: progress <span class="hljs-keyword">in</span> majority (3A) ...<br>  ... Passed --   0.4  5    47    2<br>Test: no progress <span class="hljs-keyword">in</span> minority (3A) ...<br>  ... Passed --   1.0  5   150    3<br>Test: completion after heal (3A) ...<br>  ... Passed --   1.0  5   601    3<br>Test: partitions, one client (3A) ...<br>  ... Passed --  22.4  5  5848  628<br>Test: partitions, many clients (3A) ...<br>  ... Passed --  23.2  5 14463 1048<br>Test: restarts, one client (3A) ...<br>  ... Passed --  19.6  5  5745  616<br>Test: restarts, many clients (3A) ...<br>  ... Passed --  21.5  5 11644  907<br>Test: unreliable net, restarts, many clients (3A) ...<br>  ... Passed --  21.3  5  6786  764<br>Test: restarts, partitions, many clients (3A) ...<br>  ... Passed --  27.6  5 13994  865<br>Test: unreliable net, restarts, partitions, many clients (3A) ...<br>  ... Passed --  29.3  5  7442  694<br>Test: unreliable net, restarts, partitions, random keys, many clients (3A) ...<br>  ... Passed --  30.9  7 15310  605<br>Test: InstallSnapshot RPC (3B) ...<br>2022/11/27 02:49:36 The corresponding position appears other cmd.<br>  ... Passed --   3.0  3   828   63<br>Test: snapshot size is reasonable (3B) ...<br>  ... Passed --   9.2  3  3160  800<br>Test: ops complete fast enough (3B) ...<br>  ... Passed --  11.4  3  3797    0<br>Test: restarts, snapshots, one client (3B) ...<br>  ... Passed --  20.0  5 10775 1352<br>Test: restarts, snapshots, many clients (3B) ...<br>  ... Passed --  20.9  5 28711 3907<br>Test: unreliable net, snapshots, many clients (3B) ...<br>  ... Passed --  15.9  5 10020 1375<br>Test: unreliable net, restarts, snapshots, many clients (3B) ...<br>  ... Passed --  20.7  5 10768 1405<br>Test: unreliable net, restarts, partitions, snapshots, many clients (3B) ...<br>  ... Passed --  28.9  5  9563 1046<br>Test: unreliable net, restarts, partitions, snapshots, random keys, many clients (3B) ...<br>2022/11/27 02:51:46 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:1 lastIncludedIndex:398  <span class="hljs-built_in">log</span> len:13<br>2022/11/27 02:51:57 <span class="hljs-built_in">local</span> server snapshot is newer. server <span class="hljs-built_in">id</span>:4 lastIncludedIndex:1004  <span class="hljs-built_in">log</span> len:15<br>  ... Passed --  31.3  7 28028 1956<br>PASS<br>ok      6.824/kvraft    435.349s<br></code></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> &#123;1..10000&#125;; <span class="hljs-keyword">do</span> go <span class="hljs-built_in">test</span> -run TestSpeed3A -race; <span class="hljs-keyword">done</span><br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  25.3  3  4321    0<br>PASS<br>ok      6.824/kvraft    26.307s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  25.2  3  4182    0<br>PASS<br>ok      6.824/kvraft    26.171s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  25.6  3  4179    0<br>PASS<br>ok      6.824/kvraft    26.610s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  25.2  3  4038    0<br>PASS<br>ok      6.824/kvraft    26.181s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  27.1  3  4337    0<br>PASS<br>ok      6.824/kvraft    28.115s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  26.4  3  3963    0<br>PASS<br>ok      6.824/kvraft    27.423s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  27.4  3  4364    0<br>PASS<br>ok      6.824/kvraft    28.387s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  26.9  3  4088    0<br>PASS<br>ok      6.824/kvraft    27.906s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  26.9  3  4210    0<br>PASS<br>ok      6.824/kvraft    27.884s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  27.3  3  3900    0<br>PASS<br>ok      6.824/kvraft    28.368s<br></code></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> &#123;1..10&#125;; <span class="hljs-keyword">do</span> go <span class="hljs-built_in">test</span> -run TestSpeed3A; <span class="hljs-keyword">done</span><br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  6080    0<br>PASS<br>ok      6.824/kvraft    11.217s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.3  3  6626    0<br>PASS<br>ok      6.824/kvraft    11.293s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.3  3  6828    0<br>PASS<br>ok      6.824/kvraft    11.263s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  7360    0<br>PASS<br>ok      6.824/kvraft    11.232s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  10.9  3  5927    0<br>PASS<br>ok      6.824/kvraft    10.909s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.3  3  5564    0<br>PASS<br>ok      6.824/kvraft    11.305s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  5945    0<br>PASS<br>ok      6.824/kvraft    11.227s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.3  3  6776    0<br>PASS<br>ok      6.824/kvraft    11.307s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  5000    0<br>PASS<br>ok      6.824/kvraft    11.237s<br>Test: ops complete fast enough (3A) ...<br>  ... Passed --  11.2  3  6073    0<br>PASS<br>ok      6.824/kvraft    11.203s<br></code></pre></td></tr></table></figure>
+<p>不知道为什么，-race对TestSpeed3A测试影响很大，不加-race就是11s左右，加了-race选项就是25~30s，有时候也能跑到35s，不过正式测试也不加race，也就无所谓了。</p>
+<h2 id="参考代码"><a href="#参考代码" class="headerlink" title="参考代码"></a>参考代码</h2><p>我一直试图使用select实现超时处理，但使用select就意味着需要使用通道传递返回信息，但如果为每一个请求创建一个通道，如何及时释放这些空间又是一个问题，没想到非常好的解决方案，就还是使用轮询的老方法。</p>
+<p><strong>client.go</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> Clerk <span class="hljs-keyword">struct</span> &#123;<br>	servers []*labrpc.ClientEnd<br>	<span class="hljs-comment">// You will have to modify this struct.</span><br>	serverNumber  <span class="hljs-type">int</span>   <span class="hljs-comment">// 服务器节点数</span><br>	clientId      <span class="hljs-type">int64</span> <span class="hljs-comment">// 随机生成的客户端ID</span><br>	currentSeqNum <span class="hljs-type">int64</span> <span class="hljs-comment">// 当前序列号</span><br>	lastLeader    <span class="hljs-type">int</span>   <span class="hljs-comment">// 上次成功连接的leader</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">nrand</span><span class="hljs-params">()</span></span> <span class="hljs-type">int64</span> &#123;<br>	max := big.NewInt(<span class="hljs-type">int64</span>(<span class="hljs-number">1</span>) &lt;&lt; <span class="hljs-number">62</span>)<br>	bigx, _ := rand.Int(rand.Reader, max)<br>	x := bigx.Int64()<br>	<span class="hljs-keyword">return</span> x<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">MakeClerk</span><span class="hljs-params">(servers []*labrpc.ClientEnd)</span></span> *Clerk &#123;<br>	ck := <span class="hljs-built_in">new</span>(Clerk)<br>	ck.servers = servers<br>	<span class="hljs-comment">// You&#x27;ll have to add code here.</span><br>	ck.serverNumber = <span class="hljs-built_in">len</span>(servers)<br>	ck.clientId = nrand() <span class="hljs-comment">// 生成随机的ID</span><br>	ck.currentSeqNum = <span class="hljs-number">1</span>  <span class="hljs-comment">// 起始序列号为1</span><br>	<span class="hljs-keyword">return</span> ck<br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(ck *Clerk)</span></span> Get(key <span class="hljs-type">string</span>) <span class="hljs-type">string</span> &#123;<br>	args := GetArgs&#123;Key: key, ClientId: ck.clientId, SequenceNum: atomic.AddInt64(&amp;ck.currentSeqNum, <span class="hljs-number">1</span>)&#125;<br>	<span class="hljs-keyword">for</span> &#123;<br>		<span class="hljs-keyword">for</span> i := ck.lastLeader; i &lt; ck.lastLeader+ck.serverNumber; i++ &#123; <span class="hljs-comment">// 持续尝试不同节点</span><br>			reply := GetReply&#123;&#125;<br>			ok := ck.servers[i%ck.serverNumber].Call(<span class="hljs-string">&quot;KVServer.Get&quot;</span>, &amp;args, &amp;reply)<br>			<span class="hljs-keyword">if</span> ok &amp;&amp; reply.Status == ErrNoKey &#123;<br>				ck.lastLeader = i<br>				<span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&quot;</span><br>			&#125;<br>			<span class="hljs-keyword">if</span> ok &amp;&amp; reply.Status == OK &#123;<br>				ck.lastLeader = i<br>				<span class="hljs-keyword">return</span> reply.Value<br>			&#125;<br>		&#125;<br>		time.Sleep(<span class="hljs-number">100</span> * time.Millisecond)<br>	&#125;<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(ck *Clerk)</span></span> PutAppend(key <span class="hljs-type">string</span>, value <span class="hljs-type">string</span>, op <span class="hljs-type">string</span>) &#123;<br>	args := PutAppendArgs&#123;Key: key, Value: value, Op: op, ClientId: ck.clientId, SequenceNum: atomic.AddInt64(&amp;ck.currentSeqNum, <span class="hljs-number">1</span>)&#125;<br>	<span class="hljs-keyword">for</span> &#123;<br>		<span class="hljs-keyword">for</span> i := ck.lastLeader; i &lt; ck.lastLeader+ck.serverNumber; i++ &#123; <span class="hljs-comment">// 持续尝试不同节点</span><br>			reply := PutAppendReply&#123;&#125;<br>			ok := ck.servers[i%ck.serverNumber].Call(<span class="hljs-string">&quot;KVServer.PutAppend&quot;</span>, &amp;args, &amp;reply)<br>			<span class="hljs-keyword">if</span> ok &amp;&amp; reply.Status == OK &#123;<br>				ck.lastLeader = i<br>				<span class="hljs-keyword">return</span><br>			&#125;<br>		&#125;<br>		time.Sleep(<span class="hljs-number">100</span> * time.Millisecond)<br>	&#125;<br><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(ck *Clerk)</span></span> Put(key <span class="hljs-type">string</span>, value <span class="hljs-type">string</span>) &#123;<br>	ck.PutAppend(key, value, <span class="hljs-string">&quot;Put&quot;</span>)<br>&#125;<br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(ck *Clerk)</span></span> Append(key <span class="hljs-type">string</span>, value <span class="hljs-type">string</span>) &#123;<br>	ck.PutAppend(key, value, <span class="hljs-string">&quot;Append&quot;</span>)<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><strong>common.go</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">const</span> ( <span class="hljs-comment">// 错误类型</span><br>	OK             = <span class="hljs-string">&quot;OK&quot;</span><br>	ErrNoKey       = <span class="hljs-string">&quot;ErrNoKey&quot;</span><br>	ErrWrongLeader = <span class="hljs-string">&quot;ErrWrongLeader&quot;</span><br>	ErrTimeout     = <span class="hljs-string">&quot;ErrTimeout&quot;</span><br>	ErrOldRequest  = <span class="hljs-string">&quot;ErrOldRequest&quot;</span> <span class="hljs-comment">// 未出现</span><br>	ErrLogFull     = <span class="hljs-string">&quot;ErrLogFull&quot;</span>    <span class="hljs-comment">// 未用到</span><br>)<br><br><span class="hljs-keyword">type</span> Err <span class="hljs-type">string</span><br><br><span class="hljs-keyword">type</span> ReqResult <span class="hljs-keyword">struct</span> &#123; <span class="hljs-comment">// 命令执行返回</span><br>	SequenceNum <span class="hljs-type">int64</span>  <span class="hljs-comment">// 命令序列号</span><br>	Status      Err    <span class="hljs-comment">// 命令执行状态</span><br>	Value       <span class="hljs-type">string</span> <span class="hljs-comment">// 命令执行结果</span><br>&#125;<br><br><span class="hljs-comment">// Put or Append</span><br><span class="hljs-keyword">type</span> PutAppendArgs <span class="hljs-keyword">struct</span> &#123;<br>	Key   <span class="hljs-type">string</span><br>	Value <span class="hljs-type">string</span><br>	Op    <span class="hljs-type">string</span> <span class="hljs-comment">// &quot;Put&quot; or &quot;Append&quot;</span><br>	<span class="hljs-comment">// 附带client id与序列号</span><br>	ClientId    <span class="hljs-type">int64</span><br>	SequenceNum <span class="hljs-type">int64</span><br>&#125;<br><br><span class="hljs-keyword">type</span> PutAppendReply <span class="hljs-keyword">struct</span> &#123;<br>	Status Err<br>&#125;<br><br><span class="hljs-keyword">type</span> GetArgs <span class="hljs-keyword">struct</span> &#123;<br>	Key <span class="hljs-type">string</span><br>	<span class="hljs-comment">// 附带client id与序列号</span><br>	ClientId    <span class="hljs-type">int64</span><br>	SequenceNum <span class="hljs-type">int64</span><br>&#125;<br><br><span class="hljs-keyword">type</span> GetReply <span class="hljs-keyword">struct</span> &#123;<br>	Status Err<br>	Value  <span class="hljs-type">string</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p><strong>server.go</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">const</span> Debug = <span class="hljs-literal">true</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">DPrintf</span><span class="hljs-params">(format <span class="hljs-type">string</span>, a ...<span class="hljs-keyword">interface</span>&#123;&#125;)</span></span> (n <span class="hljs-type">int</span>, err <span class="hljs-type">error</span>) &#123;<br>	<span class="hljs-keyword">if</span> Debug &#123;<br>		log.Printf(format, a...)<br>	&#125;<br>	<span class="hljs-keyword">return</span><br>&#125;<br><br><span class="hljs-keyword">const</span> (<br>	GeneralPollFrequency  = <span class="hljs-number">10</span> * time.Millisecond  <span class="hljs-comment">// 轮询时间</span><br>	TimeoutThreshold      = <span class="hljs-number">200</span> * time.Millisecond <span class="hljs-comment">// 超时阈值</span><br>	SnapshotPollFrequency = <span class="hljs-number">100</span> * time.Millisecond <span class="hljs-comment">// 快照轮询时间</span><br>)<br><br><span class="hljs-keyword">type</span> KVServer <span class="hljs-keyword">struct</span> &#123;<br>	mu           sync.Mutex<br>	me           <span class="hljs-type">int</span><br>	rf           *raft.Raft<br>	applyCh      <span class="hljs-keyword">chan</span> raft.ApplyMsg<br>	dead         <span class="hljs-type">int32</span> <span class="hljs-comment">// set by Kill()</span><br>	maxraftstate <span class="hljs-type">int</span>   <span class="hljs-comment">// snapshot if log grows this big</span><br><br>	persister         *raft.Persister<br>	kvData            <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]<span class="hljs-type">string</span>   <span class="hljs-comment">// 存放kv数据</span><br>	clientCache       <span class="hljs-keyword">map</span>[<span class="hljs-type">int64</span>]ReqResult <span class="hljs-comment">// 存放各个客户端最新结果</span><br>	commitIndex       <span class="hljs-type">int</span>                 <span class="hljs-comment">// server当前commit index</span><br>	lastSnapshotIndex <span class="hljs-type">int</span>                 <span class="hljs-comment">// 上次快照的commit index</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> Get(args *GetArgs, reply *GetReply) &#123;<br>	requestBegin := time.Now()<br>	kv.mu.Lock()<br>	index, _, isLeader := kv.rf.Start(*args) <span class="hljs-comment">// 开始协商用户请求</span><br>	kv.mu.Unlock()<br>	<span class="hljs-keyword">if</span> !isLeader &#123; <span class="hljs-comment">// 当前节点不是leader节点，返回错误</span><br>		reply.Status = ErrWrongLeader<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	<span class="hljs-keyword">for</span> &#123;<br>		kv.mu.Lock()<br>		outCycle := <span class="hljs-literal">false</span><br>		cache := kv.clientCache[args.ClientId]<br>		<span class="hljs-keyword">if</span> cache.SequenceNum &lt; args.SequenceNum &#123; <span class="hljs-comment">// 仍未执行相应请求</span><br>			<span class="hljs-keyword">if</span> kv.commitIndex &gt;= index &#123; <span class="hljs-comment">// 相应位置出现了其他的命令</span><br>				reply.Status = ErrWrongLeader<br>				outCycle = <span class="hljs-literal">true</span><br>			&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> time.Since(requestBegin) &gt; TimeoutThreshold &#123; <span class="hljs-comment">// 等待超时</span><br>				reply.Status = ErrTimeout<br>				outCycle = <span class="hljs-literal">true</span><br>			&#125;<br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cache.SequenceNum == args.SequenceNum &#123; <span class="hljs-comment">// 请求执行成功</span><br>			reply.Status = cache.Status<br>			reply.Value = cache.Value<br>			outCycle = <span class="hljs-literal">true</span><br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cache.SequenceNum &gt; args.SequenceNum &#123;<br>			reply.Status = ErrOldRequest<br>			outCycle = <span class="hljs-literal">true</span><br>		&#125;<br>		kv.mu.Unlock()<br>		<span class="hljs-keyword">if</span> outCycle &#123;<br>			<span class="hljs-keyword">return</span><br>		&#125;<br>		time.Sleep(GeneralPollFrequency)<br>	&#125;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> PutAppend(args *PutAppendArgs, reply *PutAppendReply) &#123;<br>	requestBegin := time.Now()<br>	kv.mu.Lock()<br>	index, _, isLeader := kv.rf.Start(*args) <span class="hljs-comment">// 开始协商用户请求</span><br>	kv.mu.Unlock()<br>	<span class="hljs-keyword">if</span> !isLeader &#123;<br>		reply.Status = ErrWrongLeader<br>		<span class="hljs-keyword">return</span><br>	&#125;<br>	<span class="hljs-keyword">for</span> &#123;<br>		kv.mu.Lock()<br>		outCycle := <span class="hljs-literal">false</span><br>		cache := kv.clientCache[args.ClientId]<br>		<span class="hljs-keyword">if</span> cache.SequenceNum &lt; args.SequenceNum &#123; <span class="hljs-comment">// 仍未执行相应请求</span><br>			<span class="hljs-keyword">if</span> kv.commitIndex &gt;= index &#123; <span class="hljs-comment">// 相应位置出现了其他的命令</span><br>				reply.Status = ErrWrongLeader<br>				outCycle = <span class="hljs-literal">true</span><br>			&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> time.Since(requestBegin) &gt; TimeoutThreshold &#123; <span class="hljs-comment">// 等待超时</span><br>				reply.Status = ErrTimeout<br>				outCycle = <span class="hljs-literal">true</span><br>			&#125;<br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cache.SequenceNum == args.SequenceNum &#123; <span class="hljs-comment">// 请求执行成功</span><br>			reply.Status = OK<br>			outCycle = <span class="hljs-literal">true</span><br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cache.SequenceNum &gt; args.SequenceNum &#123;<br>			reply.Status = ErrOldRequest<br>			outCycle = <span class="hljs-literal">true</span><br>		&#125;<br>		kv.mu.Unlock()<br>		<span class="hljs-keyword">if</span> outCycle &#123;<br>			<span class="hljs-keyword">return</span><br>		&#125;<br>		time.Sleep(GeneralPollFrequency)<br>	&#125;<br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> Kill() &#123;<br>	atomic.StoreInt32(&amp;kv.dead, <span class="hljs-number">1</span>)<br>	kv.rf.Kill()<br>	<span class="hljs-comment">// Your code here, if desired.</span><br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> killed() <span class="hljs-type">bool</span> &#123;<br>	z := atomic.LoadInt32(&amp;kv.dead)<br>	<span class="hljs-keyword">return</span> z == <span class="hljs-number">1</span><br>&#125;<br><br><span class="hljs-comment">// 接受raft消息</span><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-params">(kv *KVServer)</span></span> receiveTask() &#123;<br>	<span class="hljs-keyword">for</span> !kv.killed() &#123;<br>		msg := &lt;-kv.applyCh<br>		kv.mu.Lock()<br>		<span class="hljs-keyword">if</span> msg.CommandValid &#123; <span class="hljs-comment">// 普通的日志消息</span><br>			kv.commitIndex = msg.CommandIndex<br>			<span class="hljs-keyword">switch</span> data := msg.Command.(<span class="hljs-keyword">type</span>) &#123;<br>			<span class="hljs-keyword">case</span> GetArgs:<br>				cache := kv.clientCache[data.ClientId]    <span class="hljs-comment">// 查看相应客户端缓存</span><br>				<span class="hljs-keyword">if</span> cache.SequenceNum &lt; data.SequenceNum &#123; <span class="hljs-comment">// 执行请求，自动覆盖之前的结果</span><br>					value, ok := kv.kvData[data.Key]<br>					<span class="hljs-keyword">if</span> !ok &#123; <span class="hljs-comment">// 判断是否存在相应key，返回错误码</span><br>						kv.clientCache[data.ClientId] = ReqResult&#123;SequenceNum: data.SequenceNum, Status: ErrNoKey&#125;<br>					&#125; <span class="hljs-keyword">else</span> &#123;<br>						kv.clientCache[data.ClientId] = ReqResult&#123;SequenceNum: data.SequenceNum, Status: OK, Value: value&#125;<br>					&#125;<br>				&#125;<br>			<span class="hljs-keyword">case</span> PutAppendArgs:<br>				cache := kv.clientCache[data.ClientId]    <span class="hljs-comment">// 查看相应客户端缓存</span><br>				<span class="hljs-keyword">if</span> cache.SequenceNum &lt; data.SequenceNum &#123; <span class="hljs-comment">// 执行请求，自动覆盖之前的结果</span><br>					<span class="hljs-keyword">if</span> data.Op == <span class="hljs-string">&quot;Put&quot;</span> &#123;<br>						kv.kvData[data.Key] = data.Value<br>					&#125; <span class="hljs-keyword">else</span> &#123;<br>						kv.kvData[data.Key] += data.Value<br>					&#125;<br><br>					kv.clientCache[data.ClientId] = ReqResult&#123;SequenceNum: data.SequenceNum, Status: OK&#125;<br>				&#125;<br>			&#125;<br>		&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> msg.SnapshotValid &#123; <span class="hljs-comment">// 快照消息</span><br>			r := bytes.NewBuffer(msg.Snapshot)<br>			d := labgob.NewDecoder(r)<br>			<span class="hljs-keyword">var</span> commitIndex <span class="hljs-type">int</span><br>			<span class="hljs-keyword">var</span> clientCache <span class="hljs-keyword">map</span>[<span class="hljs-type">int64</span>]ReqResult<br>			<span class="hljs-keyword">var</span> kvData <span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]<span class="hljs-type">string</span><br>			<span class="hljs-keyword">if</span> d.Decode(&amp;commitIndex) != <span class="hljs-literal">nil</span> || d.Decode(&amp;clientCache) != <span class="hljs-literal">nil</span> || d.Decode(&amp;kvData) != <span class="hljs-literal">nil</span> &#123;<br>				log.Panicf(<span class="hljs-string">&quot;snapshot decode error&quot;</span>)<br>			&#125; <span class="hljs-keyword">else</span> &#123;<br>				kv.commitIndex = commitIndex<br>				kv.clientCache = clientCache<br>				kv.kvData = kvData<br>				<span class="hljs-comment">// 更新lastSnapshotIndex</span><br>				kv.lastSnapshotIndex = commitIndex<br>			&#125;<br>		&#125;<br>		<span class="hljs-comment">// 检查raft state大小，生成快照</span><br>		<span class="hljs-keyword">if</span> kv.maxraftstate &gt; <span class="hljs-number">0</span> &amp;&amp; kv.persister.RaftStateSize() &gt; kv.maxraftstate &amp;&amp; kv.commitIndex &gt; kv.lastSnapshotIndex &#123;<br>			w := <span class="hljs-built_in">new</span>(bytes.Buffer)<br>			e := labgob.NewEncoder(w)<br>			e.Encode(kv.commitIndex)<br>			e.Encode(kv.clientCache)<br>			e.Encode(kv.kvData)<br>			snapshot := w.Bytes()<br>			kv.rf.Snapshot(kv.commitIndex, snapshot)<br>			kv.lastSnapshotIndex = kv.commitIndex<br>		&#125;<br>		kv.mu.Unlock()<br>	&#125;<br>&#125;<br><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">StartKVServer</span><span class="hljs-params">(servers []*labrpc.ClientEnd, me <span class="hljs-type">int</span>, persister *raft.Persister, maxraftstate <span class="hljs-type">int</span>)</span></span> *KVServer &#123;<br>	<span class="hljs-comment">// call labgob.Register on structures you want</span><br>	<span class="hljs-comment">// Go&#x27;s RPC library to marshall/unmarshall.</span><br>	labgob.Register(GetArgs&#123;&#125;)<br>	labgob.Register(PutAppendArgs&#123;&#125;)<br><br>	kv := <span class="hljs-built_in">new</span>(KVServer)<br>	kv.me = me<br>	kv.maxraftstate = maxraftstate<br><br>	<span class="hljs-comment">// You may need initialization code here.</span><br><br>	kv.applyCh = <span class="hljs-built_in">make</span>(<span class="hljs-keyword">chan</span> raft.ApplyMsg)<br>	kv.rf = raft.Make(servers, me, persister, kv.applyCh)<br><br>	<span class="hljs-comment">// You may need initialization code here.</span><br>	kv.kvData = <span class="hljs-built_in">make</span>(<span class="hljs-keyword">map</span>[<span class="hljs-type">string</span>]<span class="hljs-type">string</span>)<br>	kv.clientCache = <span class="hljs-keyword">map</span>[<span class="hljs-type">int64</span>]ReqResult&#123;&#125;<br>	kv.persister = persister<br>	<span class="hljs-keyword">go</span> kv.receiveTask()<br>	<span class="hljs-keyword">return</span> kv<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%9B%BD%E5%A4%96%E8%AF%BE%E7%A8%8B%E5%AE%9E%E9%AA%8C/" class="category-chain-item">国外课程实验</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Key-Value-6-824-lab3-kvraft/" class="print-no-link">#Key/Value 6.824 lab3 kvraft</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/blog/mit6.824%202022%20lab4.html" title="mit6.824 2022 lab4">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">mit6.824 2022 lab4</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/blog/mit6.824%202022%20lab2.html" title="mit6.824 2022 lab2">
+                        <span class="hidden-mobile">mit6.824 2022 lab2</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"uU0wegCOTLXqtIgWmhAD3MFq-gzGzoHsz","appKey":"0e2MMh7ddBCGGytOe9UEy5NP","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":true,"recordIP":true,"serverURLs":"https://uu0wegco.lc-cn-n1-shared.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -1,1 +1,779 @@
-<!DOCTYPE html><html lang="zh-CN" data-default-color-scheme="auto"><head><meta charset="UTF-8"><link rel="apple-touch-icon" sizes="76x76" href="/img/nano-1.jpg"><link rel="icon" href="/img/nano-1.jpg"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,shrink-to-fit=no"><meta http-equiv="x-ua-compatible" content="ie=edge"><meta name="theme-color" content="#2f4154"><meta name="author" content="最佳损友1020"><meta name="keywords" content=""><meta name="description" content="最近用Visual Studio写项目时，自己新增了两个文件（.h和.cpp），并在main.cpp中调用该类。但生成解决方案时一直显示无法解析的外部符号。在网上搜索了了许多种方法，都没有发现问题所在。头文件中定义的类方法都在源文件实现了，而无法解析的外部符号实际上就是指没有找到该类的实现。在观察生成解决方式时输出列表的编译文件发现，并没有编译我新建的源文件。故在.vcxproj文件中修改编"><meta property="og:type" content="article"><meta property="og:title" content="Visual Studio：无法解析的外部符号"><meta property="og:url" content="https://www.jiasun.top/blog/Visual%20Studio%EF%BC%9A%E6%97%A0%E6%B3%95%E8%A7%A3%E6%9E%90%E7%9A%84%E5%A4%96%E9%83%A8%E7%AC%A6%E5%8F%B7.html"><meta property="og:site_name" content="最佳损友1020’s Blog"><meta property="og:description" content="最近用Visual Studio写项目时，自己新增了两个文件（.h和.cpp），并在main.cpp中调用该类。但生成解决方案时一直显示无法解析的外部符号。在网上搜索了了许多种方法，都没有发现问题所在。头文件中定义的类方法都在源文件实现了，而无法解析的外部符号实际上就是指没有找到该类的实现。在观察生成解决方式时输出列表的编译文件发现，并没有编译我新建的源文件。故在.vcxproj文件中修改编"><meta property="og:locale" content="zh_CN"><meta property="article:published_time" content="2021-04-08T03:25:46.000Z"><meta property="article:modified_time" content="2023-10-31T14:45:59.014Z"><meta property="article:author" content="最佳损友1020"><meta property="article:tag" content="ide"><meta name="twitter:card" content="summary_large_image"><title>Visual Studio：无法解析的外部符号 - 最佳损友1020’s Blog</title><link rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css"><link rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css"><link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css"><link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css"><link rel="stylesheet" href="/css/main.css"><link id="highlight-css" rel="stylesheet" href="/css/highlight.css"><link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css"><link rel="stylesheet" href="/css/csdn.css"><link rel="stylesheet" href="/css/top.css"><script id="fluid-configs">var Fluid=window.Fluid||{};Fluid.ctx=Object.assign({},Fluid.ctx);var CONFIG={hostname:"www.jiasun.top",root:"/",version:"1.9.5-a",typing:{enable:!0,typeSpeed:70,cursorChar:"_",loop:!1,scope:[]},anchorjs:{enable:!0,element:"h1,h2,h3,h4,h5,h6",placement:"left",visible:"hover",icon:""},progressbar:{enable:!0,height_px:3,color:"#29d",options:{showSpinner:!1,trickleSpeed:100}},code_language:{enable:!0,default:"TEXT"},copy_btn:!0,image_caption:{enable:!0},image_zoom:{enable:!0,img_url_replace:["",""]},toc:{enable:!0,placement:"right",headingSelector:"h1,h2,h3,h4,h5,h6",collapseDepth:4},lazyload:{enable:!0,loading_img:"/img/loading.gif",onlypost:!1,offset_factor:2},web_analytics:{enable:!0,follow_dnt:!0,baidu:null,google:{measurement_id:null},tencent:{sid:null,cid:null},woyaola:null,cnzz:null,leancloud:{app_id:"n227FxNJCTncCeI3DrGx7MnC-gzGzoHsz",app_key:"ljkRZDiTtVmjn5mpaQmpFqgv",server_url:"https://n227fxnj.lc-cn-n1-shared.com",path:"window.location.pathname",ignore_local:!1}},search_path:"/local-search.xml",include_content_in_search:!0};if(CONFIG.web_analytics.follow_dnt){var dntVal=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack;Fluid.ctx.dnt=dntVal&&(dntVal.startsWith("1")||dntVal.startsWith("yes")||dntVal.startsWith("on"))}</script><script src="/js/utils.js"></script><script src="/js/color-schema.js"></script><script async>Fluid.ctx.dnt||Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=",(function(){function a(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],a("js",new Date),a("config","")}))</script><meta name="generator" content="Hexo 6.3.0"></head><body><header><div class="header-inner" style="height:70vh"><nav id="navbar" class="navbar fixed-top navbar-expand-lg navbar-dark scrolling-navbar"><div class="container"><a class="navbar-brand" href="/"><strong>最佳损友1020</strong> </a><button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><div class="animated-icon"><span></span><span></span><span></span></div></button><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav ml-auto text-center"><li class="nav-item"><a class="nav-link" href="/"><i class="iconfont icon-home-fill"></i> <span>首页</span></a></li><li class="nav-item"><a class="nav-link" href="/archives/"><i class="iconfont icon-archive-fill"></i> <span>归档</span></a></li><li class="nav-item"><a class="nav-link" href="/categories/"><i class="iconfont icon-category-fill"></i> <span>分类</span></a></li><li class="nav-item"><a class="nav-link" href="/tags/"><i class="iconfont icon-tags-fill"></i> <span>标签</span></a></li><li class="nav-item"><a class="nav-link" href="/about/"><i class="iconfont icon-user-fill"></i> <span>关于</span></a></li><li class="nav-item"><a class="nav-link" href="/links/"><i class="iconfont icon-link-fill"></i> <span>友链</span></a></li><li class="nav-item" id="search-btn"><a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search"><i class="iconfont icon-search"></i></a></li><li class="nav-item" id="color-toggle-btn"><a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle"><i class="iconfont icon-dark" id="color-toggle-icon"></i></a></li></ul></div></div></nav><div id="banner" class="banner" parallax="true" style="background:url(/img/bg.webp) no-repeat center center;background-size:cover"><div class="full-bg-img"><div class="mask flex-center" style="background-color:rgba(0,0,0,.3)"><div class="banner-text text-center fade-in-up"><div class="h2"><span id="subtitle" data-typed-text="Visual Studio：无法解析的外部符号"></span></div><div class="mt-3"><span class="post-meta"><i class="iconfont icon-date-fill" aria-hidden="true"></i> <time datetime="2021-04-08 11:25" pubdate>2021年4月8日 上午</time></span></div><div class="mt-1"><span class="post-meta mr-2"><i class="iconfont icon-chart"></i> 2.2k 字 </span><span class="post-meta mr-2"><i class="iconfont icon-clock-fill"></i> 19 分钟 </span><span id="leancloud-page-views-container" class="post-meta" style="display:none"><i class="iconfont icon-eye" aria-hidden="true"></i> <span id="leancloud-page-views"></span> 次</span></div></div></div></div></div></div></header><main><div class="container-fluid nopadding-x"><div class="row nomargin-x"><div class="side-col d-none d-lg-block col-lg-2"></div><div class="col-lg-8 nopadding-x-md"><div class="container nopadding-x-md" id="board-ctn"><div id="board"><article class="post-content mx-auto"><h1 id="seo-header">Visual Studio：无法解析的外部符号</h1><div class="markdown-body"><meta name="referrer" content="no-referrer"><p>最近用Visual Studio写项目时，自己新增了两个文件（.h和.cpp），并在main.cpp中调用该类。但生成解决方案时一直显示无法解析的外部符号。在网上搜索了了许多种方法，都没有发现问题所在。头文件中定义的类方法都在源文件实现了，<strong>而无法解析的外部符号实际上就是指没有找到该类的实现</strong>。在观察生成解决方式时输出列表的编译文件发现，并没有编译我新建的源文件。故在.vcxproj文件中修改编译选项</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">ClCompile</span> <span class="hljs-attr">Include</span>=<span class="hljs-string">&quot;src\ssd\Host_Interface_SATA.cpp&quot;</span> /&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">ClCompile</span> <span class="hljs-attr">Include</span>=<span class="hljs-string">&quot;src\ssd\IO_Flow_Extra_Parameter.cpp&quot;</span> /&gt;</span> //新加的源文件<br><span class="hljs-tag">&lt;<span class="hljs-name">ClCompile</span> <span class="hljs-attr">Include</span>=<span class="hljs-string">&quot;src\ssd\NVM_Firmware.cpp&quot;</span> /&gt;</span><br></code></pre></td></tr></table></figure><p>而后就能成功生成了！</p><h4 id="头文件与源文件"><a href="#头文件与源文件" class="headerlink" title="头文件与源文件"></a>头文件与源文件</h4><p>头文件一般用定义类，为避免多次引用，需在前面加上ifndef define，最后加上endif并带上标识（一般为文件名大写_H)</p><p>示例</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//IO_Flow_Extra_Parameter.h</span><br><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> IO_FLOW_EXTRA_PARAMETER_H</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> IO_FLOW_EXTRA_PARAMETER_H</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;vector&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;../sim/Sim_Defs.h&quot;</span></span><br>namespace SSD_Components<br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">IO_Flow_Extra_Parameter</span></span><br><span class="hljs-class">	&#123;</span><br>	public:<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;sim_time_type&gt; expected_response_times;<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-type">int</span>&gt; io_flow_intensities;<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;sim_time_type&gt; real_response_times;<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;sim_time_type&gt; waiting_times;<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-type">double</span>&gt; weights;<br>		<span class="hljs-type">int</span> IO_Flow_Number;<br>		<span class="hljs-type">static</span> IO_Flow_Extra_Parameter* _instance;<br><br>		IO_Flow_Extra_Parameter();<br><br>		<span class="hljs-type">void</span> <span class="hljs-title function_">Reset</span><span class="hljs-params">()</span>;<br>		<span class="hljs-type">static</span> IO_Flow_Extra_Parameter* <span class="hljs-title function_">Instance</span><span class="hljs-params">()</span>;<br>	&#125;;<br>&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">define</span> Extra_Parameter SSD_Components::IO_Flow_Extra_Parameter::Instance()</span><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span> <span class="hljs-comment">// !IO_FLOW_EXTRA_PARAMETER_H</span></span><br><br><span class="hljs-comment">//IO_Flow_Extra_Parameter.cpp</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;IO_Flow_Extra_Parameter.h&quot;</span></span><br><br>namespace SSD_Components<br>&#123;<br>	IO_Flow_Extra_Parameter* IO_Flow_Extra_Parameter::_instance = <span class="hljs-literal">NULL</span>;<br><br>	IO_Flow_Extra_Parameter::IO_Flow_Extra_Parameter() &#123;<br>	&#125;<br>	IO_Flow_Extra_Parameter* <span class="hljs-title function_">IO_Flow_Extra_Parameter::Instance</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-keyword">if</span> (_instance == <span class="hljs-literal">NULL</span>) &#123;<br>			_instance = new IO_Flow_Extra_Parameter();<br>		&#125;<br>		<span class="hljs-keyword">return</span> _instance;<br>	&#125;<br><br>	<span class="hljs-type">void</span> <span class="hljs-title function_">IO_Flow_Extra_Parameter::Reset</span><span class="hljs-params">()</span><br>	&#123;<br>		expected_response_times.clear();<br>		io_flow_intensities.clear();<br>		real_response_times.clear();<br>		waiting_times.clear();<br>		weights.clear();<br><br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure><p>如果我们导入一个头文件，实际上在预编译阶段编译器就会直接将该头文件中的所有内容复制进该文件，这些头文件中一般只是方法声明，而没有定义。等到链接阶段，才将真正的方法定义连接起来（源文件的obj文件中存在方法定义）</p><h3 id="命名空间"><a href="#命名空间" class="headerlink" title="命名空间"></a>命名空间</h3><p>命名空间可作为附加信息来区分不同库中相同名称的函数、类、变量等。使用了命名空间即定义了上下文。本质上，命名空间就是定义了一个范围。<br>您可以使用 using namespace 指令，这样在使用命名空间时就可以不用在前面加上命名空间的名称。这个指令会告诉编译器，后续的代码将使用指定的命名空间中的名称。</p><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/educast/article/details/12491473">无法解析的外部符号的几种可能（lib方面的）</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/scyq/p/12287140.html">浅谈头文件(.h)和源文件(.cpp)的区别</a></p></div><hr><div><div class="post-metas my-3"><div class="post-meta mr-3 d-flex align-items-center"><i class="iconfont icon-category"></i> <span class="category-chains"><span class="category-chain"><a href="/categories/%E8%B8%A9%E5%9D%91%E6%97%A5%E8%AE%B0/" class="category-chain-item">踩坑日记</a></span></span></div><div class="post-meta"><i class="iconfont icon-tags"></i> <a href="/tags/ide/" class="print-no-link">#ide</a></div></div><div class="post-prevnext my-3"><article class="post-prev col-6"><a href="/blog/%E4%BA%91%E6%9C%8D%E5%8A%A1%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95.html" title="云服务使用记录"><i class="iconfont icon-arrowleft"></i> <span class="hidden-mobile">云服务使用记录</span> <span class="visible-mobile">上一篇</span></a></article><article class="post-next col-6"><a href="/blog/%E8%B8%A9%E5%9D%91%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB!%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97.html" title="踩坑经验分享/安装配置指南"><span class="hidden-mobile">踩坑经验分享/安装配置指南</span> <span class="visible-mobile">下一篇</span> <i class="iconfont icon-arrowright"></i></a></article></div></div><article id="comments" lazyload><div id="valine"></div><script type="text/javascript">Fluid.utils.loadComments("#valine",(function(){Fluid.utils.createScript("https://lib.baomitu.com/valine/1.5.1/Valine.min.js",(function(){var e=Object.assign({appId:"uU0wegCOTLXqtIgWmhAD3MFq-gzGzoHsz",appKey:"0e2MMh7ddBCGGytOe9UEy5NP",path:"window.location.pathname",placeholder:null,avatar:"retro",meta:["nick","mail"],requiredFields:[],pageSize:10,lang:"zh-CN",highlight:!0,recordIP:!0,serverURLs:"https://uu0wegco.lc-cn-n1-shared.com",emojiCDN:null,emojiMaps:null,enableQQ:!1},{el:"#valine",path:window.location.pathname});new Valine(e),Fluid.utils.waitElementVisible("#valine .vcontent",()=>{var e="#valine .vcontent img:not(.vemoji)";Fluid.plugins.imageCaption(e),Fluid.plugins.fancyBox(e)})}))}))</script><noscript>Please enable JavaScript to view the comments</noscript></article></article></div></div></div><div class="side-col d-none d-lg-block col-lg-2"><aside class="sidebar" style="margin-left:-1rem"><div id="toc"><p class="toc-header"><i class="iconfont icon-list"></i> <span>目录</span></p><div class="toc-body" id="toc-body"></div></div></aside></div></div></div><a id="scroll-top-button" aria-label="TOP" href="#" role="button"><i class="iconfont icon-arrowup" aria-hidden="true"></i></a><div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable modal-lg" role="document"><div class="modal-content"><div class="modal-header text-center"><h4 class="modal-title w-100 font-weight-bold">搜索</h4><button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body mx-3"><div class="md-form mb-5"><input type="text" id="local-search-input" class="form-control validate"> <label data-error="x" data-success="v" for="local-search-input">关键词</label></div><div class="list-group" id="local-search-result"></div></div></div></div></div></main><footer><div class="footer-inner"><div class="footer-content"><a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a></div><div class="statistics"><span id="leancloud-site-pv-container" style="display:none">总访问量 <span id="leancloud-site-pv"></span> 次 </span><span id="leancloud-site-uv-container" style="display:none">总访客数 <span id="leancloud-site-uv"></span> 人</span></div></div></footer><script src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js"></script><link rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css"><script>NProgress.configure({showSpinner:!1,trickleSpeed:100}),NProgress.start(),window.addEventListener("load",(function(){NProgress.done()}))</script><script src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js"></script><script src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js"></script><script src="/js/events.js"></script><script src="/js/plugins.js"></script><script src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js"></script><script>!function(t,e){var i=Fluid.plugins.typing,n=e.getElementById("subtitle");n&&i&&i(n.getAttribute("data-typed-text"))}(window,document)</script><script src="/js/img-lazyload.js"></script><script>Fluid.utils.createScript("https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js",(function(){var t=jQuery("#toc");if(0!==t.length&&window.tocbot){var i=jQuery("#board-ctn").offset().top;window.tocbot.init(Object.assign({tocSelector:"#toc-body",contentSelector:".markdown-body",linkClass:"tocbot-link",activeLinkClass:"tocbot-active-link",listClass:"tocbot-list",isCollapsedClass:"tocbot-is-collapsed",collapsibleClass:"tocbot-is-collapsible",scrollSmooth:!0,includeTitleTags:!0,headingsOffset:-i},CONFIG.toc)),t.find(".toc-list-item").length>0&&t.css("visibility","visible"),Fluid.events.registerRefreshCallback((function(){if("tocbot"in window){tocbot.refresh();var t=jQuery("#toc");if(0===t.length||!tocbot)return;t.find(".toc-list-item").length>0&&t.css("visibility","visible")}}))}}))</script><script src="https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js"></script><script>Fluid.plugins.codeWidget()</script><script>Fluid.utils.createScript("https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js",(function(){window.anchors.options={placement:CONFIG.anchorjs.placement,visible:CONFIG.anchorjs.visible},CONFIG.anchorjs.icon&&(window.anchors.options.icon=CONFIG.anchorjs.icon);var n=(CONFIG.anchorjs.element||"h1,h2,h3,h4,h5,h6").split(","),o=[];for(var s of n)o.push(".markdown-body > "+s.trim());"left"===CONFIG.anchorjs.placement&&(window.anchors.options.class="anchorjs-link-left"),window.anchors.add(o.join(", ")),Fluid.events.registerRefreshCallback((function(){if("anchors"in window){anchors.removeAll();var n=(CONFIG.anchorjs.element||"h1,h2,h3,h4,h5,h6").split(","),o=[];for(var s of n)o.push(".markdown-body > "+s.trim());"left"===CONFIG.anchorjs.placement&&(anchors.options.class="anchorjs-link-left"),anchors.add(o.join(", "))}}))}))</script><script>Fluid.utils.createScript("https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js",(function(){Fluid.plugins.fancyBox()}))</script><script>Fluid.plugins.imageCaption()</script><script defer src="/js/leancloud.js"></script><script src="/js/local-search.js"></script><script src="/js/boot.js"></script><noscript><div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div></noscript></body></html>
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/nano-1.jpg">
+  <link rel="icon" href="/img/nano-1.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="最佳损友1020">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="最近用Visual Studio写项目时，自己新增了两个文件（.h和.cpp），并在main.cpp中调用该类。但生成解决方案时一直显示无法解析的外部符号。在网上搜索了了许多种方法，都没有发现问题所在。头文件中定义的类方法都在源文件实现了，而无法解析的外部符号实际上就是指没有找到该类的实现。在观察生成解决方式时输出列表的编译文件发现，并没有编译我新建的源文件。故在.vcxproj文件中修改编">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Visual Studio：无法解析的外部符号">
+<meta property="og:url" content="https://www.jiasun.top/blog/Visual%20Studio%EF%BC%9A%E6%97%A0%E6%B3%95%E8%A7%A3%E6%9E%90%E7%9A%84%E5%A4%96%E9%83%A8%E7%AC%A6%E5%8F%B7.html">
+<meta property="og:site_name" content="最佳损友1020’s Blog">
+<meta property="og:description" content="最近用Visual Studio写项目时，自己新增了两个文件（.h和.cpp），并在main.cpp中调用该类。但生成解决方案时一直显示无法解析的外部符号。在网上搜索了了许多种方法，都没有发现问题所在。头文件中定义的类方法都在源文件实现了，而无法解析的外部符号实际上就是指没有找到该类的实现。在观察生成解决方式时输出列表的编译文件发现，并没有编译我新建的源文件。故在.vcxproj文件中修改编">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-08T03:25:46.000Z">
+<meta property="article:modified_time" content="2023-10-31T14:45:59.014Z">
+<meta property="article:author" content="最佳损友1020">
+<meta property="article:tag" content="ide">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Visual Studio：无法解析的外部符号 - 最佳损友1020’s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/csdn.css">
+<link rel="stylesheet" href="/css/top.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.jiasun.top","root":"/","version":"1.9.5-a","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":4},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"n227FxNJCTncCeI3DrGx7MnC-gzGzoHsz","app_key":"ljkRZDiTtVmjn5mpaQmpFqgv","server_url":"https://n227fxnj.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>最佳损友1020</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Visual Studio：无法解析的外部符号"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-04-08 11:25" pubdate>
+          2021年4月8日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          19 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Visual Studio：无法解析的外部符号</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+
+<p>最近用Visual Studio写项目时，自己新增了两个文件（.h和.cpp），并在main.cpp中调用该类。但生成解决方案时一直显示无法解析的外部符号。在网上搜索了了许多种方法，都没有发现问题所在。头文件中定义的类方法都在源文件实现了，<strong>而无法解析的外部符号实际上就是指没有找到该类的实现</strong>。在观察生成解决方式时输出列表的编译文件发现，并没有编译我新建的源文件。故在.vcxproj文件中修改编译选项</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">ClCompile</span> <span class="hljs-attr">Include</span>=<span class="hljs-string">&quot;src\ssd\Host_Interface_SATA.cpp&quot;</span> /&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">ClCompile</span> <span class="hljs-attr">Include</span>=<span class="hljs-string">&quot;src\ssd\IO_Flow_Extra_Parameter.cpp&quot;</span> /&gt;</span> //新加的源文件<br><span class="hljs-tag">&lt;<span class="hljs-name">ClCompile</span> <span class="hljs-attr">Include</span>=<span class="hljs-string">&quot;src\ssd\NVM_Firmware.cpp&quot;</span> /&gt;</span><br></code></pre></td></tr></table></figure>
+<p>而后就能成功生成了！</p>
+<h4 id="头文件与源文件"><a href="#头文件与源文件" class="headerlink" title="头文件与源文件"></a>头文件与源文件</h4><p>头文件一般用定义类，为避免多次引用，需在前面加上ifndef define，最后加上endif并带上标识（一般为文件名大写_H)</p>
+<p>示例</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//IO_Flow_Extra_Parameter.h</span><br><span class="hljs-meta">#<span class="hljs-keyword">ifndef</span> IO_FLOW_EXTRA_PARAMETER_H</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> IO_FLOW_EXTRA_PARAMETER_H</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;vector&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;../sim/Sim_Defs.h&quot;</span></span><br>namespace SSD_Components<br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">IO_Flow_Extra_Parameter</span></span><br><span class="hljs-class">	&#123;</span><br>	public:<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;sim_time_type&gt; expected_response_times;<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-type">int</span>&gt; io_flow_intensities;<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;sim_time_type&gt; real_response_times;<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;sim_time_type&gt; waiting_times;<br>		<span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-type">double</span>&gt; weights;<br>		<span class="hljs-type">int</span> IO_Flow_Number;<br>		<span class="hljs-type">static</span> IO_Flow_Extra_Parameter* _instance;<br><br>		IO_Flow_Extra_Parameter();<br><br>		<span class="hljs-type">void</span> <span class="hljs-title function_">Reset</span><span class="hljs-params">()</span>;<br>		<span class="hljs-type">static</span> IO_Flow_Extra_Parameter* <span class="hljs-title function_">Instance</span><span class="hljs-params">()</span>;<br>	&#125;;<br>&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">define</span> Extra_Parameter SSD_Components::IO_Flow_Extra_Parameter::Instance()</span><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span> <span class="hljs-comment">// !IO_FLOW_EXTRA_PARAMETER_H</span></span><br><br><span class="hljs-comment">//IO_Flow_Extra_Parameter.cpp</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;IO_Flow_Extra_Parameter.h&quot;</span></span><br><br>namespace SSD_Components<br>&#123;<br>	IO_Flow_Extra_Parameter* IO_Flow_Extra_Parameter::_instance = <span class="hljs-literal">NULL</span>;<br><br>	IO_Flow_Extra_Parameter::IO_Flow_Extra_Parameter() &#123;<br>	&#125;<br>	IO_Flow_Extra_Parameter* <span class="hljs-title function_">IO_Flow_Extra_Parameter::Instance</span><span class="hljs-params">()</span> &#123;<br>		<span class="hljs-keyword">if</span> (_instance == <span class="hljs-literal">NULL</span>) &#123;<br>			_instance = new IO_Flow_Extra_Parameter();<br>		&#125;<br>		<span class="hljs-keyword">return</span> _instance;<br>	&#125;<br><br>	<span class="hljs-type">void</span> <span class="hljs-title function_">IO_Flow_Extra_Parameter::Reset</span><span class="hljs-params">()</span><br>	&#123;<br>		expected_response_times.clear();<br>		io_flow_intensities.clear();<br>		real_response_times.clear();<br>		waiting_times.clear();<br>		weights.clear();<br><br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>如果我们导入一个头文件，实际上在预编译阶段编译器就会直接将该头文件中的所有内容复制进该文件，这些头文件中一般只是方法声明，而没有定义。等到链接阶段，才将真正的方法定义连接起来（源文件的obj文件中存在方法定义）</p>
+<h3 id="命名空间"><a href="#命名空间" class="headerlink" title="命名空间"></a>命名空间</h3><p>命名空间可作为附加信息来区分不同库中相同名称的函数、类、变量等。使用了命名空间即定义了上下文。本质上，命名空间就是定义了一个范围。<br>您可以使用 using namespace 指令，这样在使用命名空间时就可以不用在前面加上命名空间的名称。这个指令会告诉编译器，后续的代码将使用指定的命名空间中的名称。</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/educast/article/details/12491473">无法解析的外部符号的几种可能（lib方面的）</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/scyq/p/12287140.html">浅谈头文件(.h)和源文件(.cpp)的区别</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%B8%A9%E5%9D%91%E6%97%A5%E8%AE%B0/" class="category-chain-item">踩坑日记</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/ide/" class="print-no-link">#ide</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/blog/%E4%BA%91%E6%9C%8D%E5%8A%A1%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95.html" title="云服务使用记录">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">云服务使用记录</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/blog/%E8%B8%A9%E5%9D%91%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB!%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97.html" title="踩坑经验分享/安装配置指南">
+                        <span class="hidden-mobile">踩坑经验分享/安装配置指南</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"uU0wegCOTLXqtIgWmhAD3MFq-gzGzoHsz","appKey":"0e2MMh7ddBCGGytOe9UEy5NP","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":true,"recordIP":true,"serverURLs":"https://uu0wegco.lc-cn-n1-shared.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
