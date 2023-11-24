@@ -65,15 +65,6 @@
   </url>
   
   <url>
-    <loc>https://www.jiasun.top/life/%E8%A5%BF%E7%94%B5%E5%9B%9E%E5%BF%86.html</loc>
-    
-    <lastmod>2023-11-02</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://www.jiasun.top/blog/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html</loc>
     
     <lastmod>2023-10-31</lastmod>
@@ -1093,13 +1084,6 @@
   
   <url>
     <loc>https://www.jiasun.top/tags/%E5%BE%85%E5%8A%9E/</loc>
-    <lastmod>2023-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.jiasun.top/tags/%E8%A5%BF%E7%94%B5-%E5%9B%9E%E5%BF%86/</loc>
     <lastmod>2023-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
