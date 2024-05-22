@@ -1,0 +1,1274 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/nano-1.jpg">
+  <link rel="icon" href="/img/nano-1.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="最佳损友1020">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="仅做简单记录，自用，没太大价值 相关博客： ZNS已有论文 ZNS : 解决传统SSD问题的高性能存储栈设计（fs–＞io–＞device） An Efficient Design and Implementation of  LSM-Tree based Key-Value Store on Open-Channel SSD摘要 介绍键值存储系统 介绍LSM树 介绍NAND 闪存与固">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ZNS与LevelDB相关记录">
+<meta property="og:url" content="https://www.jiasun.top/blog/ZNS%E4%B8%8ELevelDB%E7%9B%B8%E5%85%B3%E8%AE%B0%E5%BD%95.html">
+<meta property="og:site_name" content="最佳损友1020’s Blog">
+<meta property="og:description" content="仅做简单记录，自用，没太大价值 相关博客： ZNS已有论文 ZNS : 解决传统SSD问题的高性能存储栈设计（fs–＞io–＞device） An Efficient Design and Implementation of  LSM-Tree based Key-Value Store on Open-Channel SSD摘要 介绍键值存储系统 介绍LSM树 介绍NAND 闪存与固">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202405221918594.png">
+<meta property="article:published_time" content="2024-05-22T11:19:15.815Z">
+<meta property="article:modified_time" content="2024-05-22T11:18:57.867Z">
+<meta property="article:author" content="最佳损友1020">
+<meta property="article:tag" content="ZNS SSD  LevelDB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202405221918594.png">
+  
+  
+  
+  <title>ZNS与LevelDB相关记录 - 最佳损友1020’s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/csdn.css">
+<link rel="stylesheet" href="/css/top.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.jiasun.top","root":"/","version":"1.9.5-a","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":4},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"n227FxNJCTncCeI3DrGx7MnC-gzGzoHsz","app_key":"ljkRZDiTtVmjn5mpaQmpFqgv","server_url":"https://n227fxnj.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>最佳损友1020</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="ZNS与LevelDB相关记录"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-05-22 19:19" pubdate>
+          2024年5月22日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          50k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          417 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">ZNS与LevelDB相关记录</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+
+
+
+
+<p><mark>仅做简单记录，自用，没太大价值</mark></p>
+<p>相关博客：</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/627042333">ZNS已有论文</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/425123214">ZNS : 解决传统SSD问题的高性能存储栈设计（fs–＞io–＞device）</a></p>
+<h5 id="An-Efficient-Design-and-Implementation-of-LSM-Tree-based-Key-Value-Store-on-Open-Channel-SSD"><a href="#An-Efficient-Design-and-Implementation-of-LSM-Tree-based-Key-Value-Store-on-Open-Channel-SSD" class="headerlink" title="An Efficient Design and Implementation of  LSM-Tree based Key-Value Store on Open-Channel SSD"></a>An Efficient Design and Implementation of  LSM-Tree based Key-Value Store on Open-Channel SSD</h5><p><strong>摘要</strong></p>
+<p>介绍键值存储系统</p>
+<p>介绍LSM树</p>
+<p>介绍NAND 闪存与固态盘</p>
+<p>提出问题：直接将LSM树与固态盘结合效率不高，当前LSM存储引擎不能充分利用SSD内部并行性</p>
+<p>引出LOCS（LSM-tree-based KV store on Open-Channel SSD）解决方案</p>
+<p>方案特点：将闪存通道暴露给应用程序，优化IO调度策略，提高数据访问效率</p>
+<p><strong>引言</strong></p>
+<p>数据量逐渐增大，关系数据库可能不再有效，引出键值存储</p>
+<p>简要介绍键值存储特点，以传统B+树的缺点引出LSM树，介绍LSM树的主要思想</p>
+<p>以KV存储主要目标存储设备机械硬盘转到对固态硬盘的介绍</p>
+<p>介绍LSM树集成到固态盘的可能性以及存在的问题（仍然是并行性与IO调度优化）</p>
+<p>为解决以上问题，提出LOCS，做出以下贡献</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081125538.png" srcset="/img/loading.gif" lazyload></p>
+<p><strong>背景</strong></p>
+<blockquote>
+<p>leveldb</p>
+</blockquote>
+<p>介绍leveldb主要架构</p>
+<p>介绍leveldb插入键值对流程</p>
+<p>介绍sst文件与层级特征</p>
+<p>介绍压缩（compaction）操作流程</p>
+<p>介绍读操作流程</p>
+<blockquote>
+<p>open channel ssd</p>
+</blockquote>
+<p>ocssd整体介绍</p>
+<p>First, SDF exposes the internal parallelism of SSD to user applications.</p>
+<p>Second, SDF provides an asymmetric I&#x2F;O interface. The read unit size is different from write unit size.</p>
+<p>Third, the erase operation is exposed to the software as a new command to the device.</p>
+<p>Fourth, a simplified I&#x2F;O stack is designed specifically for SDF</p>
+<p><strong>设计实现</strong></p>
+<p>废话文学典范</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081133234.png" srcset="/img/loading.gif" lazyload></p>
+<p>总体架构：</p>
+<p>修改leveldb，提高对SSD并发访问效率</p>
+<p>添加IO请求调度器，提高请求访问效率</p>
+<blockquote>
+<p>对leveldb的扩展</p>
+</blockquote>
+<p>问题1：后台只有一个压缩线程</p>
+<p>措施1：提高Immutable memtable的上限</p>
+<p>问题2：写流量控制机制</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Level-0 compaction is started when we hit this many files.</span><br><span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-type">int</span> kL0_CompactionTrigger = <span class="hljs-number">4</span>;<br><br><span class="hljs-comment">// Soft limit on number of level-0 files.  We slow down writes at this point.</span><br><span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-type">int</span> kL0_SlowdownWritesTrigger = <span class="hljs-number">8</span>;<br><br><span class="hljs-comment">// Maximum number of level-0 files.  We stop writes at this point.</span><br><span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-type">int</span> kL0_StopWritesTrigger = <span class="hljs-number">12</span>;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>增大阈值，在暂停期间增加一个压缩线程，待level 0 SST文件数量小于 kL0 CompactionTrigger &#x2F; 2便可恢复写人</p>
+<p>WAL日志放在非易失性内存中（NVM）</p>
+<blockquote>
+<p>请求调度策略</p>
+</blockquote>
+<p><strong>轮询调度</strong></p>
+<p>由于每个写请求的大小是固定的，因此在写请求占主导地位的情况下，它可以有效地工作。但是，当队列中有密集的读取和擦除请求时，轮询调度的效率就会降低。</p>
+<p><strong>最小加权队列长度写调度</strong></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081156958.png" srcset="/img/loading.gif" lazyload></p>
+<p>选择最小加权队列长度通道插入写请求</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081159697.png" srcset="/img/loading.gif" lazyload></p>
+<p><strong>压缩调度优化</strong></p>
+<p>确保sstable被小心地分派，这样具有相邻键范围的sstable就不会被分配到相同的通道中。</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081158544.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081200820.png" srcset="/img/loading.gif" lazyload></p>
+<p><strong>擦除请求优化</strong></p>
+<p>在LOCS中，我们为写请求的比率设置了一个阈值。当写请求比达到阈值时，调度擦除请求。请注意，当空闲块的百分比低于阈值时，将强制调度擦除请求。</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081204902.png" srcset="/img/loading.gif" lazyload></p>
+<p><strong>实验评估</strong></p>
+<p>SDF</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081511630.png" srcset="/img/loading.gif" lazyload></p>
+<p>对比SSD</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081511894.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081513298.png" srcset="/img/loading.gif" lazyload></p>
+<p>SDF与华为SSD对比吞吐量与OPS</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081514223.png" srcset="/img/loading.gif" lazyload></p>
+<p>immemtable数量对吞吐量的影响</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081516812.png" srcset="/img/loading.gif" lazyload></p>
+<p>减速阈值对leveldb吞吐量的影响</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081516035.png" srcset="/img/loading.gif" lazyload></p>
+<p>阈值变化，吞吐量变化趋势</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081518815.png" srcset="/img/loading.gif" lazyload></p>
+<p>加入额外压缩线程对吞吐量的影响</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081518463.png" srcset="/img/loading.gif" lazyload></p>
+<p>空队列对吞吐量的影响，空队列越多，越不能完全发挥SSD性能</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081520051.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081522200.png" srcset="/img/loading.gif" lazyload></p>
+<h5 id="WALTZ-Leveraging-Zone-Append-to-Tighten-the-Tail-Latency-of-LSM-Tree-on-ZNS-SSD"><a href="#WALTZ-Leveraging-Zone-Append-to-Tighten-the-Tail-Latency-of-LSM-Tree-on-ZNS-SSD" class="headerlink" title="WALTZ: Leveraging Zone Append to Tighten the Tail Latency of LSM Tree on ZNS SSD"></a>WALTZ: Leveraging Zone Append to Tighten the Tail Latency of LSM Tree on ZNS SSD</h5><p>基于rockdb zenfs的论文，看不懂</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081550318.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081555943.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081555257.png" srcset="/img/loading.gif" lazyload></p>
+<p>我们提出了一种基于ZNS SSD的键值存储WALTZ，它使用zone追加命令改善了lsm树的尾部延迟。在本研究中，我们首先分析了批处理组写入如何影响尾部延迟，并利用ZNS SSD的append命令消除了批处理组写入的同步开销。通过利用区域保留和延迟元数据管理技术来处理并行追加过程中出现的区域满的情况，延迟影响被最小化。在实验中，与ZenFS相比，我们在db_bench微基准测试中实现了最大3.02倍的尾部延迟改进和几何2.19倍的尾部延迟改进，在Facebook MixGraph基准测试中实现了高达4.73倍的尾部延迟改进。我们还证明，由于写入路径优化，QPS提高了11.7%。</p>
+<h5 id="ZoneKV-A-Space-Efficient-Key-Value-Store-for-ZNS-SSDs"><a href="#ZoneKV-A-Space-Efficient-Key-Value-Store-for-ZNS-SSDs" class="headerlink" title="ZoneKV: A Space-Efficient Key-Value Store for ZNS SSDs"></a>ZoneKV: A Space-Efficient Key-Value Store for ZNS SSDs</h5><p>提出了基于生命周期的分区存储模型与级别特定的分区分配方法</p>
+<p>引言</p>
+<p>介绍ZNS特点与优势</p>
+<p>ZNS与LSM树天然契合</p>
+<p>介绍LSM树基本组件（memtable，sstable）</p>
+<p>介绍zenfs，现有的唯一支持zns 的LSM树键值存储</p>
+<p>发现zenfs的一些问题，引出zonekv</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081733912.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081737164.png" srcset="/img/loading.gif" lazyload></p>
+<p>ZoneKV根据特定级别的生命周期值为新生成的sstable分配适当的区域进行存储。算法1描述了寻找适合SSTable的区域的步骤。该算法的主要目标是从所有活动区域中找到与当前新生成的SSTable具有相同生存期的区域。如果找到两个或更多的区域，我们选择第一个找到的区域作为候选区域。如果在所有激活的zone中没有找到合适的zone，则直接为SSTable分配一个新的zone，并将该zone的生存期设置为SSTable的生存期值。如果没有找到合适的zone，并且在ZNS SSD中不存在空zone，则寻找一个生命周期值大于SSTable的zone。如果没有找到这样的区域，则可以将任何有足够空间的区域分配给当前SSTable</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401081745244.png" srcset="/img/loading.gif" lazyload></p>
+<h5 id="最大数据传输大小"><a href="#最大数据传输大小" class="headerlink" title="最大数据传输大小"></a>最大数据传输大小</h5><p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401082025786.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401082018912.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@osd-node0 /s/c/n/n/nvme1n1<span class="hljs-comment"># nvme id-ctrl /dev/nvme0n1 | grep mdts</span><br>mdts      : 5<br>root@osd-node0 /s/c/n/n/nvme1n1<span class="hljs-comment"># nvme zns id-ctrl /dev/nvme0n1</span><br>NVMe ZNS Identify Controller:<br>zasl    : 0<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5 id="LevelDB的写入文件操作"><a href="#LevelDB的写入文件操作" class="headerlink" title="LevelDB的写入文件操作"></a>LevelDB的写入文件操作</h5><p>①日志文件的写入</p>
+<p>创建与销毁</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 创建新日志文件</span><br><span class="hljs-type">uint64_t</span> new_log_number = versions_-&gt;NewFileNumber();<br>WritableFile* lfile = nullptr;<br>s = env_-&gt;NewWritableFile(LogFileName(dbname_, new_log_number), &amp;lfile);<br>delete log_;<br><span class="hljs-comment">// 关闭并销毁旧日志文件</span><br>s = logfile_-&gt;Close();<br>delete logfile_;<br><br>logfile_ = lfile;<br>logfile_number_ = new_log_number;<br>log_ = new <span class="hljs-built_in">log</span>::Writer(lfile);<br></code></pre></td></tr></table></figure>
+
+
+
+<p>写入</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c">status = log_-&gt;AddRecord(WriteBatchInternal::Contents(write_batch));<br>	s = EmitPhysicalRecord(type, ptr, fragment_length);<br>		Status s = dest_-&gt;Append(Slice(buf, kHeaderSize));<br>		s = dest_-&gt;Append(Slice(ptr, length));<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<p>②后台合并线程</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c">CompactMemTable<br>    WriteLevel0Table<br>    	BuildTable<br>    		TableBuilder::Add<br>                TableBuilder::Flush<br>                    TableBuilder::WriteBlock<br><br><span class="hljs-type">void</span> <span class="hljs-title function_">TableBuilder::WriteRawBlock</span><span class="hljs-params">(<span class="hljs-type">const</span> Slice&amp; block_contents,</span><br><span class="hljs-params">                                 CompressionType type, BlockHandle* handle)</span> &#123;<br>  Rep* r = rep_;<br>  handle-&gt;set_offset(r-&gt;offset);<br>  handle-&gt;set_size(block_contents.size());<br>  r-&gt;status = r-&gt;file-&gt;Append(block_contents);<br>  <span class="hljs-keyword">if</span> (r-&gt;status.ok()) &#123;<br>    <span class="hljs-type">char</span> trailer[kBlockTrailerSize];<br>    trailer[<span class="hljs-number">0</span>] = type;<br>    <span class="hljs-type">uint32_t</span> crc = crc32c::Value(block_contents.data(), block_contents.size());<br>    crc = crc32c::Extend(crc, trailer, <span class="hljs-number">1</span>);  <span class="hljs-comment">// Extend crc to cover block type</span><br>    EncodeFixed32(trailer + <span class="hljs-number">1</span>, crc32c::Mask(crc));<br>    r-&gt;status = r-&gt;file-&gt;Append(Slice(trailer, kBlockTrailerSize));<br>    <span class="hljs-keyword">if</span> (r-&gt;status.ok()) &#123;<br>      r-&gt;offset += block_contents.size() + kBlockTrailerSize;<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><code class="hljs c">Status <span class="hljs-title function_">TableBuilder::Finish</span><span class="hljs-params">()</span> &#123;<br>  Rep* r = rep_;<br>  Flush();<br>  assert(!r-&gt;closed);<br>  r-&gt;closed = <span class="hljs-literal">true</span>;<br><br>  BlockHandle filter_block_handle, metaindex_block_handle, index_block_handle;<br><br>  <span class="hljs-comment">// Write filter block</span><br>  <span class="hljs-keyword">if</span> (ok() &amp;&amp; r-&gt;filter_block != nullptr) &#123;<br>    WriteRawBlock(r-&gt;filter_block-&gt;Finish(), kNoCompression,<br>                  &amp;filter_block_handle);<br>  &#125;<br><br>  <span class="hljs-comment">// Write metaindex block</span><br>  <span class="hljs-keyword">if</span> (ok()) &#123;<br>    BlockBuilder <span class="hljs-title function_">meta_index_block</span><span class="hljs-params">(&amp;r-&gt;options)</span>;<br>    <span class="hljs-keyword">if</span> (r-&gt;filter_block != nullptr) &#123;<br>      <span class="hljs-comment">// Add mapping from &quot;filter.Name&quot; to location of filter data</span><br>      <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> key = <span class="hljs-string">&quot;filter.&quot;</span>;<br>      key.append(r-&gt;options.filter_policy-&gt;Name());<br>      <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> handle_encoding;<br>      filter_block_handle.EncodeTo(&amp;handle_encoding);<br>      meta_index_block.Add(key, handle_encoding);<br>    &#125;<br><br>    <span class="hljs-comment">// TODO(postrelease): Add stats and other meta blocks</span><br>    WriteBlock(&amp;meta_index_block, &amp;metaindex_block_handle);<br>  &#125;<br><br>  <span class="hljs-comment">// Write index block</span><br>  <span class="hljs-keyword">if</span> (ok()) &#123;<br>    <span class="hljs-keyword">if</span> (r-&gt;pending_index_entry) &#123;<br>      r-&gt;options.comparator-&gt;FindShortSuccessor(&amp;r-&gt;last_key);<br>      <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> handle_encoding;<br>      r-&gt;pending_handle.EncodeTo(&amp;handle_encoding);<br>      r-&gt;index_block.Add(r-&gt;last_key, Slice(handle_encoding));<br>      r-&gt;pending_index_entry = <span class="hljs-literal">false</span>;<br>    &#125;<br>    WriteBlock(&amp;r-&gt;index_block, &amp;index_block_handle);<br>  &#125;<br><br>  <span class="hljs-comment">// Write footer</span><br>  <span class="hljs-keyword">if</span> (ok()) &#123;<br>    Footer footer;<br>    footer.set_metaindex_handle(metaindex_block_handle);<br>    footer.set_index_handle(index_block_handle);<br>    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> footer_encoding;<br>    footer.EncodeTo(&amp;footer_encoding);<br>    r-&gt;status = r-&gt;file-&gt;Append(footer_encoding);<br>    <span class="hljs-keyword">if</span> (r-&gt;status.ok()) &#123;<br>      r-&gt;offset += footer_encoding.size();<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> r-&gt;status;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h5 id="nvme盘被ceph占用"><a href="#nvme盘被ceph占用" class="headerlink" title="nvme盘被ceph占用"></a>nvme盘被ceph占用</h5><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42126962/article/details/117785672">解决重装系统后有磁盘被ceph占用问题</a></p>
+<p><a target="_blank" rel="noopener" href="https://askubuntu.com/questions/429612/device-mapper-remove-ioctl-on-luks-xxxx-failed-device-or-resource-busy">device-mapper: remove ioctl on luks-xxxx failed: Device or resource busy</a></p>
+<h5 id="fio文档阅读"><a href="#fio文档阅读" class="headerlink" title="fio文档阅读"></a>fio文档阅读</h5><h5 id="zonefs"><a href="#zonefs" class="headerlink" title="zonefs"></a>zonefs</h5><p><a target="_blank" rel="noopener" href="https://github.com/westerndigitalcorporation/zonefs-tools">zonefs-tools</a></p>
+<p><a target="_blank" rel="noopener" href="https://zonedstorage.io/docs/filesystems/zonefs">zonefs File System</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">error: Couldn<span class="hljs-string">&#x27;t find blkid/blkid.h</span><br><span class="hljs-string">apt install libblkid-dev</span><br></code></pre></td></tr></table></figure>
+
+
+
+<h5 id="f2fs"><a href="#f2fs" class="headerlink" title="f2fs"></a>f2fs</h5><p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402231642348.png" srcset="/img/loading.gif" lazyload></p>
+<h6 id="千万注意f2fs的调度设置mq-deadline，有可能出现问题"><a href="#千万注意f2fs的调度设置mq-deadline，有可能出现问题" class="headerlink" title="千万注意f2fs的调度设置mq-deadline，有可能出现问题"></a>千万注意f2fs的调度设置mq-deadline，有可能出现问题</h6><p><a target="_blank" rel="noopener" href="https://zonedstorage.io/docs/linux/fs">File Systems</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/wenj12/article/details/129274036">西数ZN540如何修改sector size</a></p>
+<blockquote>
+<p>mount: &#x2F;root&#x2F;rocksdb&#x2F;f2fs: mount(2) system call failed: Structure needs cleaning.</p>
+</blockquote>
+<p>f2fs版本有点老，换成阿里云源后依然没找到更新的安装包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs bash">mkfs.f2fs -V<br>mkfs.f2fs 1.14.0 (2020-08-24)<br><br> apt-cache policy f2fs-tools<br>f2fs-tools:<br>  Installed: 1.14.0-2build1<br>  Candidate: 1.14.0-2build1<br>  Version table:<br> *** 1.14.0-2build1 500<br>        500 https://mirrors.aliyun.com/ubuntu jammy/universe amd64 Packages<br>        100 /var/lib/dpkg/status<br></code></pre></td></tr></table></figure>
+
+
+
+<p>在以下网站找到安装包：<a target="_blank" rel="noopener" href="https://launchpad.net/ubuntu/+source/f2fs-tools">f2fs-tools package in Ubuntu</a></p>
+<p><strong>认真阅读网站内容并对比自身操作系统版本下载合适的文件</strong></p>
+<p>而后对着github仓库的安装步骤：<a target="_blank" rel="noopener" href="https://github.com/jaegeuk/f2fs-tools">jaegeuk&#x2F;f2fs-tools</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs bash">F2FS format utilility<br>---------------------<br><br>To use f2fs filesystem, you should format the storage partition<br>with this utilility. Otherwise, you cannot mount f2fs.<br><br>Before compilation<br>------------------<br><br>You should install the following packages.<br> - libuuid-devel or uuid-dev<br> - pkg-config<br> - autoconf<br> - libtool<br> - libselinux1-dev<br><br>Initial compilation<br>-------------------<br><br>Before compilation initially, autoconf/automake tools should be run.<br><br> <span class="hljs-comment"># ./autogen.sh</span><br><br>How to compile<br>--------------<br><br> <span class="hljs-comment"># ./configure</span><br> <span class="hljs-comment"># make</span><br> <span class="hljs-comment"># make install</span><br><br>How to cross-compile (e.g., <span class="hljs-keyword">for</span> ARM)<br>------------------------------------<br><br> 1. Add the below line into mkfs/Makefile.am:<br> mkfs_f2fs_LDFLAGS = -all-static<br><br> 2. Add the below line into fsck/Makefile.am:<br> fsck_f2fs_LDFLAGS = -all-static<br><br> 3. <span class="hljs-keyword">then</span>, <span class="hljs-keyword">do</span>:<br> <span class="hljs-comment"># LDFLAGS=--static ./configure \</span><br>	--host=arm-none-linux-gnueabi --target=arm-none-linux-gnueabi<br> <span class="hljs-comment"># make</span><br><br>How to run by default<br>---------------------<br><br> $ mkfs.f2fs -l [LABEL] <span class="hljs-variable">$DEV</span><br><br>For more mkfs options, see man page.<br></code></pre></td></tr></table></figure>
+
+<p>注意卸载之前安装的f2fs-tools，并且Before compilation中的软件全部存在</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">mkfs.f2fs -V<br>mkfs.f2fs 1.16.0 (2023-04-11)<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401212229815.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 命令历史</span><br>apt install libuuid-devel<br>apt install uuid-dev<br>apt install pkg-config<br><br>apt install autoconf<br>apt install libtool<br>apt install libselinux1-dev<br>./autogen.sh<br>./configure<br>make<br>make install<br>mkfs.f2fs -f -m -c /dev/nvme1n2 /dev/nvme2n1<br>mount -t f2fs /dev/nvme2n1<br><span class="hljs-built_in">mkdir</span> f2fs<br>mount -t f2fs /dev/nvme2n1 f2fs/<br><span class="hljs-built_in">df</span> -<br>mkfs.f2fs -V<br>;s<br><span class="hljs-built_in">cd</span> ..<br><span class="hljs-built_in">dd</span> <span class="hljs-keyword">if</span>=/dev/zero of=outputfile bs=1M count=1000<br><span class="hljs-built_in">ls</span> -la<br><span class="hljs-built_in">cp</span> outputfile  f2fs/<br><span class="hljs-built_in">cd</span> f2fs<br>fdisk -l<br><span class="hljs-built_in">dd</span> <span class="hljs-keyword">if</span>=/dev/zero of=outputfile bs=1M count=10000<br><span class="hljs-built_in">ls</span> -lah<br><span class="hljs-built_in">df</span> -a<br><span class="hljs-built_in">cat</span> /etc/fstab<br><span class="hljs-built_in">dd</span> <span class="hljs-keyword">if</span>=/dev/zero of=outputfile-1 bs=1M count=100000<br>fish<br>nvme list<br><span class="hljs-built_in">df</span> -T<br>nvme zns report-zones /dev/nvme1n2 | <span class="hljs-built_in">head</span> -10<br></code></pre></td></tr></table></figure>
+
+
+
+<p>ConfZNS支持传统Zone不仅需要修改femu代码，同时需要修改内核驱动代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">//in linux-5.10.2/driver/nvme/host/zns.c:146 </span><br><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">nvme_zone_parse_entry</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> nvme_ns *ns,</span><br><span class="hljs-params">				 <span class="hljs-keyword">struct</span> nvme_zone_descriptor *entry,</span><br><span class="hljs-params">				 <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> idx, report_zones_cb cb,</span><br><span class="hljs-params">				 <span class="hljs-type">void</span> *data)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">blk_zone</span> <span class="hljs-title">zone</span> =</span> &#123; &#125;;<br><br>	<span class="hljs-keyword">if</span> ((((entry-&gt;zt &amp; <span class="hljs-number">0xf</span>) != NVME_ZONE_TYPE_SEQWRITE_REQ)&amp;&amp;((entry-&gt;zt &amp; <span class="hljs-number">0xf</span>) != NVME_ZONE_TYPE_CONVENTIONAL)))&#123;<br>		<span class="hljs-keyword">return</span> -EINVAL;<br>	&#125;<br><br>	<span class="hljs-comment">//zone.type = BLK_ZONE_TYPE_SEQWRITE_REQ;</span><br>	<span class="hljs-keyword">if</span>((entry-&gt;zt &amp; <span class="hljs-number">0xf</span>) == NVME_ZONE_TYPE_CONVENTIONAL)&#123;<br>		zone.type = BLK_ZONE_TYPE_CONVENTIONAL;<br>		dev_err(ns-&gt;ctrl-&gt;device, <span class="hljs-string">&quot;[inho] conv to zidx %x\n&quot;</span>,idx);<br>	&#125;<br>	<span class="hljs-keyword">else</span> &#123;<br>		zone.type = BLK_ZONE_TYPE_SEQWRITE_REQ;<br>	&#125;<br>	zone.cond = entry-&gt;zs &gt;&gt; <span class="hljs-number">4</span>;<br>	zone.len = ns-&gt;zsze;<br>	zone.capacity = nvme_lba_to_sect(ns, le64_to_cpu(entry-&gt;zcap));<br>	zone.start = nvme_lba_to_sect(ns, le64_to_cpu(entry-&gt;zslba));<br>	zone.wp = nvme_lba_to_sect(ns, le64_to_cpu(entry-&gt;wp));<br><br>	<span class="hljs-keyword">return</span> cb(&amp;zone, idx, data);<br>&#125;<br><br><span class="hljs-comment">//in linux-5.10.2/include/linux/nvme.h:570</span><br><br><span class="hljs-class"><span class="hljs-keyword">enum</span> &#123;</span><br>	NVME_ZONE_TYPE_CONVENTIONAL =<span class="hljs-number">0x1</span>, 	<br>	NVME_ZONE_TYPE_SEQWRITE_REQ =<span class="hljs-number">0x2</span>,<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs bash">[   73.427370] F2FS-fs (sdc): Mount Device [ 0]:             /dev/sdc,       64,        0 -     ffff<br>[   73.427605] F2FS-fs (sdc): Mount Device [ 1]:         /dev/nvme0n1,     8192,    10000 -   40ffff (zone: Host-managed)<br>[   73.427610] F2FS-fs (sdc): IO Block Size:        4 KB<br>[   73.436833] F2FS-fs (sdc): Found nat_bits <span class="hljs-keyword">in</span> checkpoint<br>[   73.510180] F2FS-fs (sdc): Mounted with checkpoint version = 6982e7e5<br><br><br><br>[  652.514970] F2FS-fs (sdb): Mount Device [ 0]:             /dev/sdb,    32512,        0 -   ffffff<br>[  652.515138] F2FS-fs (sdb): Mount Device [ 1]:         /dev/nvme0n1,     8192,  1000000 -  13fffff (zone: Host-managed)<br>[  652.515146] F2FS-fs (sdb): IO Block Size:        4 KB<br>[  652.539311] F2FS-fs (sdb): Found nat_bits <span class="hljs-keyword">in</span> checkpoint<br>[  652.742884] F2FS-fs (sdb): Mounted with checkpoint version = 596d4527<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h5 id="解决-Github-SSH-连接超时"><a href="#解决-Github-SSH-连接超时" class="headerlink" title="解决 Github SSH 连接超时"></a>解决 Github SSH 连接超时</h5><p><a target="_blank" rel="noopener" href="https://ww-rm.github.io/posts/2024/01/17/githubssh-timeout/">解决 Github SSH 连接超时</a></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401221054074.png" srcset="/img/loading.gif" lazyload></p>
+<p><a target="_blank" rel="noopener" href="https://www.githubstatus.com/">githubstatus</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-githubs-ip-addresses">About GitHub’s IP addresses</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.github.com/en/authentication/troubleshooting-ssh/using-ssh-over-the-https-port">Using SSH over the HTTPS port</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/521xueweihan/GitHub520">GitHub520</a></p>
+<p>修改Windows host文件权限</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_52445259/article/details/123345321#:~:text=1.%E5%8F%B3%E5%87%BB%E6%96%87%E4%BB%B6%E5%A4%B9%EF%BC%8C%E7%82%B9%E5%87%BB%E5%B1%9E%E6%80%A7%20%23%23%202.%E7%82%B9%E5%87%BB%E5%AE%89%E5%85%A8%E2%80%94%E2%80%94%3E%E8%BF%9B%E5%85%A5%E9%AB%98%E7%BA%A7%E5%AE%89%E5%85%A8%E8%AE%BE%E7%BD%AE%20%23%23,3.%E8%BF%9B%E5%85%A5%E9%AB%98%E7%BA%A7%E5%AE%89%E5%85%A8%E8%AE%BE%E7%BD%AE%E5%90%8E%EF%BC%8C%E7%82%B9%E5%87%BB%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%EF%BC%8C%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%20%23%23%204%E3%80%81%E9%80%89%E6%8B%A9%E4%B8%BB%E4%BD%93%E2%80%94%E2%80%94%3E%E8%BF%9B%E5%85%A5%E9%AB%98%E7%BA%A7%E9%80%89%E9%A1%B9%E2%80%94%E2%80%94%3E%E7%82%B9%E5%87%BB%E7%AB%8B%E5%8D%B3%E6%9F%A5%E6%89%BE%E5%8D%B3%E5%8F%AF%E6%B7%BB%E5%8A%A0%E5%AF%B9%E5%BA%94%E7%94%A8%E6%88%B7%205.%E7%82%B9%E5%87%BB%E7%A1%AE%E5%AE%9A%E5%90%8E%E5%8D%B3%E5%8F%AF%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E5%9F%BA%E6%9C%AC%E6%9D%83%E9%99%90%E5%80%BC">如何修改Win10文件夹访问权限</a></p>
+<h4 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h4><h5 id="spdk相关设置步骤"><a href="#spdk相关设置步骤" class="headerlink" title="spdk相关设置步骤"></a>spdk相关设置步骤</h5><p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202403112151469.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash">link_directories(<br>  /usr/local/lib<br>  /root/SPDK/dpdk/build/lib<br>  /usr/local/lib<br>)<br>include_directories(/usr/local/include)<br><span class="hljs-keyword">if</span>(BUILD_SHARED_LIBS)<br>  <span class="hljs-comment"># Only export LEVELDB_EXPORT symbols from the shared library.</span><br>  add_compile_options(-fvisibility=hidden)<br>endif(BUILD_SHARED_LIBS)<br><br><span class="hljs-comment"># Must be included before CMAKE_INSTALL_INCLUDEDIR is used.</span><br>include(GNUInstallDirs)<br><br>add_library(leveldb <span class="hljs-string">&quot;&quot;</span>)<br><br>target_link_libraries(leveldb<br>  -Wl,--no-as-needed<br>  spdk_env_dpdk rte_eal rte_mempool rte_ring rte_mbuf rte_bus_pci rte_pci rte_mempool_ring rte_telemetry rte_kvargs rte_rcu rte_power rte_ethdev rte_vhost rte_net rte_dmadev rte_cryptodev rte_hash spdk_event_iscsi spdk_event_nbd spdk_nbd spdk_event_nvmf spdk_nvmf spdk_event_scheduler spdk_event spdk_env_dpdk_rpc spdk_event_scsi spdk_event_bdev spdk_event_accel spdk_event_iobuf spdk_event_sock spdk_event_vmd spdk_init spdk_vhost spdk_iscsi spdk_conf spdk_scsi spdk_blobfs_bdev spdk_blob_bdev spdk_bdev spdk_notify spdk_bdev_malloc spdk_bdev_null spdk_bdev_nvme spdk_accel spdk_accel_error spdk_accel_ioat spdk_ioat spdk_bdev_passthru spdk_bdev_lvol spdk_bdev_raid spdk_bdev_error spdk_bdev_gpt spdk_bdev_split spdk_bdev_delay spdk_bdev_zone_block spdk_lvol spdk_nvme spdk_sock spdk_sock_posix spdk_bdev_aio spdk_bdev_ftl spdk_ftl spdk_bdev_virtio spdk_virtio spdk_vfio_user spdk_blobfs spdk_blob spdk_dma spdk_vmd spdk_thread spdk_trace spdk_rpc spdk_jsonrpc spdk_json spdk_util spdk_log<br>  -Wl,--as-needed<br>)<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h5 id="250G主机问题"><a href="#250G主机问题" class="headerlink" title="250G主机问题"></a>250G主机问题</h5><blockquote>
+<p>vscode无法连接主机</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/77928429/vscode-server-unexpected-missing-glibc-2-28">VSCode server unexpected “Missing GLIBC &gt;&#x3D; 2.28”</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/microsoft/vscode/issues/204344">Provide legacy server when remote requirements fail</a></p>
+<p>解决方法：</p>
+<p>1 更新vscode至1.86.2，很多功能不能用了 ×</p>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/67543452">如何手动升级Visual Studio Code？</a></p>
+<p>2 下载1.85并禁用更新</p>
+<p><a target="_blank" rel="noopener" href="https://code.visualstudio.com/docs/remote/faq#_can-i-run-vs-code-server-on-older-linux-distributions">can-i-run-vs-code-server-on-older-linux-distributions</a></p>
+<blockquote>
+<p>Failed building wheel for pillow</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Karthus77/article/details/123447861">解决安装Failed building wheel for pillow</a></p>
+<p><code>set(HAVE_SNAPPY OFF)</code></p>
+<h5 id="channel利用率"><a href="#channel利用率" class="headerlink" title="channel利用率"></a>channel利用率</h5><p>fio测试zns脚本：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/425123214">ZNS : 解决传统SSD问题的高性能存储栈设计（fs–＞io–＞device）</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs bash">[global]<br>filename=/dev/nvme0n1<br>zonemode=zbd<br>max_open_zones=1<br>direct=1<br>ioengine=libaio<br>numjobs=1<br>iodepth=1<br>group_reporting<br>size=1G<br>time_based<br>runtime=60s<br>zonesize = 131072<br><br>[seqwrite]<br>rw=write <span class="hljs-comment"># or write</span><br>bs=4K<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402221729598.png" srcset="/img/loading.gif" lazyload></p>
+<p>confzns:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c">可随机读的区域<br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MK_ZONE_CONVENTIONAL 5</span><br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>f2fs问题解决轨迹</p>
+</blockquote>
+<p>1 挂载f2fs文件系统后一直随机写入第257个zone，破坏了顺序写的限制</p>
+<p>2 f2fs环境需求（内核版本，f2fs版本，调度器）</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402231937468.png" srcset="/img/loading.gif" lazyload></p>
+<p>3 14版本 Error: Failed to get number of blocks per zone，16版本无法正常运行</p>
+<p>4 自己制作镜像而不是用femu提供的</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/cs0911051221/article/details/131451265">vmware中创建qemu的嵌套虚拟化问题</a></p>
+<p>由于需要图形界面，在vmware的Ubuntu虚拟机中制作qemu镜像</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/IOT_AI/article/details/131891861">[Ubuntu 22.04.2] Running kernel seems to be up-to-date. Restarting services Daemons using outdated</a></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402241628709.png" srcset="/img/loading.gif" lazyload></p>
+<p>测试未修改的femu与confzns能否成功运行f2fs</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202403061408350.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202403061409353.png" srcset="/img/loading.gif" lazyload></p>
+<h5 id="zonekv"><a href="#zonekv" class="headerlink" title="zonekv"></a>zonekv</h5><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/0fc4b62f8ee5">RocksDB原理学习笔记</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">level0的文件大小是由write_buffer_size决定的，level1的文件大小是由target_file_size_base决定的，level2及以上，size = target_file_size_base * （target_file_size_multiplier ^ (L - <span class="hljs-number">1</span>)）<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<ol>
+<li>首先实现连续zone的简单读写env</li>
+<li>实现GC功能</li>
+<li>实现zonekv策略</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/wenj12/article/details/129274036">西数ZN540如何修改sector size</a></p>
+<p>512字节时各命令输出</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402251433381.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><code class="hljs bash">nvme id-ns -H /dev/nvme1n1<br>NVME Identify Namespace 1:<br>nsze    : 0x400000<br>ncap    : 0x400000<br>nuse    : 0<br>nsfeat  : 0x2<br>  [4:4] : 0     NPWG, NPWA, NPDG, NPDA, and NOWS are Not Supported<br>  [3:3] : 0     NGUID and EUI64 fields <span class="hljs-keyword">if</span> non-zero, Reused<br>  [2:2] : 0     Deallocated or Unwritten Logical Block error Not Supported<br>  [1:1] : 0x1   Namespace uses NAWUN, NAWUPF, and NACWU<br>  [0:0] : 0     Thin Provisioning Not Supported<br><br>nlbaf   : 4<br>flbas   : 0<br>  [4:4] : 0     Metadata Transferred <span class="hljs-keyword">in</span> Separate Contiguous Buffer<br>  [3:0] : 0     Current LBA Format Selected<br><br>mc      : 0x3<br>  [1:1] : 0x1   Metadata Pointer Supported<br>  [0:0] : 0x1   Metadata as Part of Extended Data LBA Supported<br><br>dpc     : 0<br>  [4:4] : 0     Protection Information Transferred as Last 8 Bytes of Metadata Not Supported<br>  [3:3] : 0     Protection Information Transferred as First 8 Bytes of Metadata Not Supported<br>  [2:2] : 0     Protection Information Type 3 Not Supported<br>  [1:1] : 0     Protection Information Type 2 Not Supported<br>  [0:0] : 0     Protection Information Type 1 Not Supported<br><br>dps     : 0<br>  [3:3] : 0     Protection Information is Transferred as Last 8 Bytes of Metadata<br>  [2:0] : 0     Protection Information Disabled<br><br>nmic    : 0<br>  [0:0] : 0     Namespace Multipath Not Capable<br><br>rescap  : 0xff<br>  [7:7] : 0x1   Ignore Existing Key - Used as defined <span class="hljs-keyword">in</span> revision 1.3 or later<br>  [6:6] : 0x1   Exclusive Access - All Registrants Supported<br>  [5:5] : 0x1   Write Exclusive - All Registrants Supported<br>  [4:4] : 0x1   Exclusive Access - Registrants Only Supported<br>  [3:3] : 0x1   Write Exclusive - Registrants Only Supported<br>  [2:2] : 0x1   Exclusive Access Supported<br>  [1:1] : 0x1   Write Exclusive Supported<br>  [0:0] : 0x1   Persist Through Power Loss Supported<br><br>fpi     : 0x80<br>  [7:7] : 0x1   Format Progress Indicator Supported<br>  [6:0] : 0     Format Progress Indicator (Remaining 0%)<br><br>dlfeat  : 9<br>  [4:4] : 0     Guard Field of Deallocated Logical Blocks is <span class="hljs-built_in">set</span> to 0xFFFF<br>  [3:3] : 0x1   Deallocate Bit <span class="hljs-keyword">in</span> the Write Zeroes Command is Supported<br>  [2:0] : 0x1   Bytes Read From a Deallocated Logical Block and its Metadata are 0x00<br><br>nawun   : 511<br>nawupf  : 511<br>nacwu   : 0<br>nabsn   : 0<br>nabo    : 0<br>nabspf  : 0<br>noiob   : 0<br>nvmcap  : 2147483648<br>mssrl   : 0<br>mcl     : 0<br>msrc    : 0<br>anagrpid: 0<br>nsattr  : 0<br>nvmsetid: 0<br>endgid  : 0<br>nguid   : 0d000000000000000014ee8303a65080<br>eui64   : 0014ee8303a65080<br>LBA Format  0 : Metadata Size: 0   bytes - Data Size: 512 bytes - Relative Performance: 0 Best (<span class="hljs-keyword">in</span> use)<br>LBA Format  1 : Metadata Size: 8   bytes - Data Size: 512 bytes - Relative Performance: 0 Best <br>LBA Format  2 : Metadata Size: 0   bytes - Data Size: 4096 bytes - Relative Performance: 0 Best <br>LBA Format  3 : Metadata Size: 8   bytes - Data Size: 4096 bytes - Relative Performance: 0 Best <br>LBA Format  4 : Metadata Size: 64  bytes - Data Size: 4096 bytes - Relative Performance: 0 Best <br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><code class="hljs bash">nvme id-ns -H /dev/nvme1n2<br>NVME Identify Namespace 2:<br>nsze    : 0xe2000000<br>ncap    : 0x76d94000<br>nuse    : 0x86a000<br>nsfeat  : 0x2<br>  [4:4] : 0     NPWG, NPWA, NPDG, NPDA, and NOWS are Not Supported<br>  [3:3] : 0     NGUID and EUI64 fields <span class="hljs-keyword">if</span> non-zero, Reused<br>  [2:2] : 0     Deallocated or Unwritten Logical Block error Not Supported<br>  [1:1] : 0x1   Namespace uses NAWUN, NAWUPF, and NACWU<br>  [0:0] : 0     Thin Provisioning Not Supported<br><br>nlbaf   : 4<br>flbas   : 0<br>  [4:4] : 0     Metadata Transferred <span class="hljs-keyword">in</span> Separate Contiguous Buffer<br>  [3:0] : 0     Current LBA Format Selected<br><br>mc      : 0x3<br>  [1:1] : 0x1   Metadata Pointer Supported<br>  [0:0] : 0x1   Metadata as Part of Extended Data LBA Supported<br><br>dpc     : 0<br>  [4:4] : 0     Protection Information Transferred as Last 8 Bytes of Metadata Not Supported<br>  [3:3] : 0     Protection Information Transferred as First 8 Bytes of Metadata Not Supported<br>  [2:2] : 0     Protection Information Type 3 Not Supported<br>  [1:1] : 0     Protection Information Type 2 Not Supported<br>  [0:0] : 0     Protection Information Type 1 Not Supported<br><br>dps     : 0<br>  [3:3] : 0     Protection Information is Transferred as Last 8 Bytes of Metadata<br>  [2:0] : 0     Protection Information Disabled<br><br>nmic    : 0<br>  [0:0] : 0     Namespace Multipath Not Capable<br><br>rescap  : 0xff<br>  [7:7] : 0x1   Ignore Existing Key - Used as defined <span class="hljs-keyword">in</span> revision 1.3 or later<br>  [6:6] : 0x1   Exclusive Access - All Registrants Supported<br>  [5:5] : 0x1   Write Exclusive - All Registrants Supported<br>  [4:4] : 0x1   Exclusive Access - Registrants Only Supported<br>  [3:3] : 0x1   Write Exclusive - Registrants Only Supported<br>  [2:2] : 0x1   Exclusive Access Supported<br>  [1:1] : 0x1   Write Exclusive Supported<br>  [0:0] : 0x1   Persist Through Power Loss Supported<br><br>fpi     : 0x80<br>  [7:7] : 0x1   Format Progress Indicator Supported<br>  [6:0] : 0     Format Progress Indicator (Remaining 0%)<br><br>dlfeat  : 8<br>  [4:4] : 0     Guard Field of Deallocated Logical Blocks is <span class="hljs-built_in">set</span> to 0xFFFF<br>  [3:3] : 0x1   Deallocate Bit <span class="hljs-keyword">in</span> the Write Zeroes Command is Supported<br>  [2:0] : 0     Bytes Read From a Deallocated Logical Block and its Metadata are Not Reported<br><br>nawun   : 511<br>nawupf  : 511<br>nacwu   : 0<br>nabsn   : 0<br>nabo    : 0<br>nabspf  : 0<br>noiob   : 0<br>nvmcap  : 1941325217792<br>mssrl   : 0<br>mcl     : 0<br>msrc    : 0<br>anagrpid: 0<br>nsattr  : 0<br>nvmsetid: 0<br>endgid  : 0<br>nguid   : 0e000000000000000014ee8303a65081<br>eui64   : 0014ee8303a65081<br>LBA Format  0 : Metadata Size: 0   bytes - Data Size: 512 bytes - Relative Performance: 0 Best (<span class="hljs-keyword">in</span> use)<br>LBA Format  1 : Metadata Size: 8   bytes - Data Size: 512 bytes - Relative Performance: 0 Best <br>LBA Format  2 : Metadata Size: 0   bytes - Data Size: 4096 bytes - Relative Performance: 0 Best <br>LBA Format  3 : Metadata Size: 8   bytes - Data Size: 4096 bytes - Relative Performance: 0 Best <br>LBA Format  4 : Metadata Size: 64  bytes - Data Size: 4096 bytes - Relative Performance: 0 Best<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs bash">nr_zones: 904<br>SLBA: 0          WP: 0x1b000f   Cap: 0x21a800   State: 0x20 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x400000   WP: 0x5af05c   Cap: 0x21a800   State: 0x20 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x800000   WP: 0x9afd61   Cap: 0x21a800   State: 0x20 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0xc00000   WP: 0xd1b6a0   Cap: 0x21a800   State: 0x20 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x1000000  WP: 0x1000000  Cap: 0x21a800   State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x1400000  WP: 0x1400000  Cap: 0x21a800   State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x1800000  WP: 0x1800000  Cap: 0x21a800   State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x1c00000  WP: 0x1c00000  Cap: 0x21a800   State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x2000000  WP: 0x2000000  Cap: 0x21a800   State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0  <br></code></pre></td></tr></table></figure>
+
+
+
+<p>块大小为4096</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402251443524.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><code class="hljs bash">nvme id-ns -H /dev/nvme1n1<br>NVME Identify Namespace 1:<br>nsze    : 0x80000<br>ncap    : 0x80000<br>nuse    : 0<br>nsfeat  : 0x2<br>  [4:4] : 0     NPWG, NPWA, NPDG, NPDA, and NOWS are Not Supported<br>  [3:3] : 0     NGUID and EUI64 fields <span class="hljs-keyword">if</span> non-zero, Reused<br>  [2:2] : 0     Deallocated or Unwritten Logical Block error Not Supported<br>  [1:1] : 0x1   Namespace uses NAWUN, NAWUPF, and NACWU<br>  [0:0] : 0     Thin Provisioning Not Supported<br><br>nlbaf   : 4<br>flbas   : 0x2<br>  [4:4] : 0     Metadata Transferred <span class="hljs-keyword">in</span> Separate Contiguous Buffer<br>  [3:0] : 0x2   Current LBA Format Selected<br><br>mc      : 0x3<br>  [1:1] : 0x1   Metadata Pointer Supported<br>  [0:0] : 0x1   Metadata as Part of Extended Data LBA Supported<br><br>dpc     : 0<br>  [4:4] : 0     Protection Information Transferred as Last 8 Bytes of Metadata Not Supported<br>  [3:3] : 0     Protection Information Transferred as First 8 Bytes of Metadata Not Supported<br>  [2:2] : 0     Protection Information Type 3 Not Supported<br>  [1:1] : 0     Protection Information Type 2 Not Supported<br>  [0:0] : 0     Protection Information Type 1 Not Supported<br><br>dps     : 0<br>  [3:3] : 0     Protection Information is Transferred as Last 8 Bytes of Metadata<br>  [2:0] : 0     Protection Information Disabled<br><br>nmic    : 0<br>  [0:0] : 0     Namespace Multipath Not Capable<br><br>rescap  : 0xff<br>  [7:7] : 0x1   Ignore Existing Key - Used as defined <span class="hljs-keyword">in</span> revision 1.3 or later<br>  [6:6] : 0x1   Exclusive Access - All Registrants Supported<br>  [5:5] : 0x1   Write Exclusive - All Registrants Supported<br>  [4:4] : 0x1   Exclusive Access - Registrants Only Supported<br>  [3:3] : 0x1   Write Exclusive - Registrants Only Supported<br>  [2:2] : 0x1   Exclusive Access Supported<br>  [1:1] : 0x1   Write Exclusive Supported<br>  [0:0] : 0x1   Persist Through Power Loss Supported<br><br>fpi     : 0x80<br>  [7:7] : 0x1   Format Progress Indicator Supported<br>  [6:0] : 0     Format Progress Indicator (Remaining 0%)<br><br>dlfeat  : 9<br>  [4:4] : 0     Guard Field of Deallocated Logical Blocks is <span class="hljs-built_in">set</span> to 0xFFFF<br>  [3:3] : 0x1   Deallocate Bit <span class="hljs-keyword">in</span> the Write Zeroes Command is Supported<br>  [2:0] : 0x1   Bytes Read From a Deallocated Logical Block and its Metadata are 0x00<br><br>nawun   : 63<br>nawupf  : 63<br>nacwu   : 0<br>nabsn   : 0<br>nabo    : 0<br>nabspf  : 0<br>noiob   : 0<br>nvmcap  : 2147483648<br>mssrl   : 0<br>mcl     : 0<br>msrc    : 0<br>anagrpid: 0<br>nsattr  : 0<br>nvmsetid: 0<br>endgid  : 0<br>nguid   : 0f000000000000000014ee8303a65080<br>eui64   : 0014ee8303a65080<br>LBA Format  0 : Metadata Size: 0   bytes - Data Size: 512 bytes - Relative Performance: 0 Best <br>LBA Format  1 : Metadata Size: 8   bytes - Data Size: 512 bytes - Relative Performance: 0 Best <br>LBA Format  2 : Metadata Size: 0   bytes - Data Size: 4096 bytes - Relative Performance: 0 Best (<span class="hljs-keyword">in</span> use)<br>LBA Format  3 : Metadata Size: 8   bytes - Data Size: 4096 bytes - Relative Performance: 0 Best <br>LBA Format  4 : Metadata Size: 64  bytes - Data Size: 4096 bytes - Relative Performance: 0 Best<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><code class="hljs bash">NVME Identify Namespace 2:<br>nsze    : 0x1c400000<br>ncap    : 0xedb2800<br>nuse    : 0<br>nsfeat  : 0x2<br>  [4:4] : 0     NPWG, NPWA, NPDG, NPDA, and NOWS are Not Supported<br>  [3:3] : 0     NGUID and EUI64 fields <span class="hljs-keyword">if</span> non-zero, Reused<br>  [2:2] : 0     Deallocated or Unwritten Logical Block error Not Supported<br>  [1:1] : 0x1   Namespace uses NAWUN, NAWUPF, and NACWU<br>  [0:0] : 0     Thin Provisioning Not Supported<br><br>nlbaf   : 4<br>flbas   : 0x2<br>  [4:4] : 0     Metadata Transferred <span class="hljs-keyword">in</span> Separate Contiguous Buffer<br>  [3:0] : 0x2   Current LBA Format Selected<br><br>mc      : 0x3<br>  [1:1] : 0x1   Metadata Pointer Supported<br>  [0:0] : 0x1   Metadata as Part of Extended Data LBA Supported<br><br>dpc     : 0<br>  [4:4] : 0     Protection Information Transferred as Last 8 Bytes of Metadata Not Supported<br>  [3:3] : 0     Protection Information Transferred as First 8 Bytes of Metadata Not Supported<br>  [2:2] : 0     Protection Information Type 3 Not Supported<br>  [1:1] : 0     Protection Information Type 2 Not Supported<br>  [0:0] : 0     Protection Information Type 1 Not Supported<br><br>dps     : 0<br>  [3:3] : 0     Protection Information is Transferred as Last 8 Bytes of Metadata<br>  [2:0] : 0     Protection Information Disabled<br><br>nmic    : 0<br>  [0:0] : 0     Namespace Multipath Not Capable<br><br>rescap  : 0xff<br>  [7:7] : 0x1   Ignore Existing Key - Used as defined <span class="hljs-keyword">in</span> revision 1.3 or later<br>  [6:6] : 0x1   Exclusive Access - All Registrants Supported<br>  [5:5] : 0x1   Write Exclusive - All Registrants Supported<br>  [4:4] : 0x1   Exclusive Access - Registrants Only Supported<br>  [3:3] : 0x1   Write Exclusive - Registrants Only Supported<br>  [2:2] : 0x1   Exclusive Access Supported<br>  [1:1] : 0x1   Write Exclusive Supported<br>  [0:0] : 0x1   Persist Through Power Loss Supported<br><br>fpi     : 0x80<br>  [7:7] : 0x1   Format Progress Indicator Supported<br>  [6:0] : 0     Format Progress Indicator (Remaining 0%)<br><br>dlfeat  : 8<br>  [4:4] : 0     Guard Field of Deallocated Logical Blocks is <span class="hljs-built_in">set</span> to 0xFFFF<br>  [3:3] : 0x1   Deallocate Bit <span class="hljs-keyword">in</span> the Write Zeroes Command is Supported<br>  [2:0] : 0     Bytes Read From a Deallocated Logical Block and its Metadata are Not Reported<br><br>nawun   : 63<br>nawupf  : 63<br>nacwu   : 0<br>nabsn   : 0<br>nabo    : 0<br>nabspf  : 0<br>noiob   : 0<br>nvmcap  : 1941325217792<br>mssrl   : 0<br>mcl     : 0<br>msrc    : 0<br>anagrpid: 0<br>nsattr  : 0<br>nvmsetid: 0<br>endgid  : 0<br>nguid   : 10000000000000000014ee8303a65081<br>eui64   : 0014ee8303a65081<br>LBA Format  0 : Metadata Size: 0   bytes - Data Size: 512 bytes - Relative Performance: 0 Best <br>LBA Format  1 : Metadata Size: 8   bytes - Data Size: 512 bytes - Relative Performance: 0 Best <br>LBA Format  2 : Metadata Size: 0   bytes - Data Size: 4096 bytes - Relative Performance: 0 Best (<span class="hljs-keyword">in</span> use)<br>LBA Format  3 : Metadata Size: 8   bytes - Data Size: 4096 bytes - Relative Performance: 0 Best <br>LBA Format  4 : Metadata Size: 64  bytes - Data Size: 4096 bytes - Relative Performance: 0 Bes<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs bash">nvme zns report-zones /dev/nvme1n2 | <span class="hljs-built_in">head</span> -10<br>nr_zones: 904<br>SLBA: 0          WP: 0          Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x80000    WP: 0x80000    Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x100000   WP: 0x100000   Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x180000   WP: 0x180000   Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x200000   WP: 0x200000   Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x280000   WP: 0x280000   Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x300000   WP: 0x300000   Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x380000   WP: 0x380000   Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0   <br>SLBA: 0x400000   WP: 0x400000   Cap: 0x43500    State: 0x10 Type: 0x2  Attrs: 0    AttrsInfo: 0<br></code></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402251652377.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402251653152.png" srcset="/img/loading.gif" lazyload></p>
+<blockquote>
+<p>debug经历</p>
+</blockquote>
+<p>1 各个FileState的锁只能保证各自的原子性，不能保证全局静态变量（cur_max_lba ）的原子性</p>
+<p>2 reset zone之前设成了10而不是904，导致zone is full</p>
+<p>3 table cache pin了一部分文件，导致内存占用</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"> table_cache_(new TableCache(dbname_, options_, TableCacheSize(options_))),<br><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">TableCacheSize</span><span class="hljs-params">(<span class="hljs-type">const</span> Options&amp; sanitized_options)</span> &#123;<br>  <span class="hljs-comment">// Reserve ten files or so for other uses and give the rest to TableCache.</span><br>  <span class="hljs-keyword">return</span> sanitized_options.max_open_files - kNumNonTableCacheFiles;<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">DeleteEntry</span><span class="hljs-params">(<span class="hljs-type">const</span> Slice&amp; key, <span class="hljs-type">void</span>* value)</span> &#123;<br>  TableAndFile* tf = reinterpret_cast&lt;TableAndFile*&gt;(value);<br>  delete tf-&gt;table;<br>  delete tf-&gt;file;<br>  delete tf;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202402261232357.png" srcset="/img/loading.gif" lazyload></p>
+<p><strong>Could not find operator[].</strong></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/xiaokeai66630/article/details/134348729">gdb高级用法和常见问题处理</a></p>
+<p><strong>gdb升级</strong></p>
+<p>从12.1升级13.1</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/EJoft/article/details/123036910">Ubuntu18.04升级gdb10.2</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/htjx99/article/details/42121029">gdb调试stl</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/shanyanghuzi_/article/details/112317415">解决 ‘makeinfo‘ is missing on your system.</a></p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/70380547/gmp-is-missing-while-configuring-building-gdb-from-source">gmp is missing while configuring building gdb from source</a></p>
+<p>升级后仍然未能解决问题，删除gdb可执行文件后由apt重新安装gdb</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs bash">(gdb) p kZoneToFile[0x0]<br>Could not find operator[].<br>(gdb) p kZoneToFile[0]<br>Could not find operator[].<br>(gdb) p GetZoneFiles(0)<br><span class="hljs-variable">$2</span> = std::<span class="hljs-built_in">set</span> with 0 elements<br>(gdb) p GetZoneFiles(4194304)<br><span class="hljs-variable">$3</span> = std::<span class="hljs-built_in">set</span> with 53 elements = &#123;[0] = <span class="hljs-string">&quot;./testdb/000760.ldb&quot;</span>, [1] = <span class="hljs-string">&quot;./testdb/000761.ldb&quot;</span>, [2] = <span class="hljs-string">&quot;./testdb/000762.ldb&quot;</span>, [3] = <span class="hljs-string">&quot;./testdb/000764.ldb&quot;</span>, [4] = <span class="hljs-string">&quot;./testdb/000765.ldb&quot;</span>, <br>  [5] = <span class="hljs-string">&quot;./testdb/000766.ldb&quot;</span>, [6] = <span class="hljs-string">&quot;./testdb/000767.ldb&quot;</span>, [7] = <span class="hljs-string">&quot;./testdb/000769.ldb&quot;</span>, [8] = <span class="hljs-string">&quot;./testdb/000770.ldb&quot;</span>, [9] = <span class="hljs-string">&quot;./testdb/000771.ldb&quot;</span>, [10] = <span class="hljs-string">&quot;./testdb/000772.ldb&quot;</span>, <br>  [11] = <span class="hljs-string">&quot;./testdb/000774.ldb&quot;</span>, [12] = <span class="hljs-string">&quot;./testdb/000775.ldb&quot;</span>, [13] = <span class="hljs-string">&quot;./testdb/000776.ldb&quot;</span>, [14] = <span class="hljs-string">&quot;./testdb/000833.ldb&quot;</span>, [15] = <span class="hljs-string">&quot;./testdb/000834.ldb&quot;</span>, [16] = <span class="hljs-string">&quot;./testdb/000835.ldb&quot;</span>, <br>  [17] = <span class="hljs-string">&quot;./testdb/000837.ldb&quot;</span>, [18] = <span class="hljs-string">&quot;./testdb/000838.ldb&quot;</span>, [19] = <span class="hljs-string">&quot;./testdb/000839.ldb&quot;</span>, [20] = <span class="hljs-string">&quot;./testdb/000841.ldb&quot;</span>, [21] = <span class="hljs-string">&quot;./testdb/000842.ldb&quot;</span>, [22] = <span class="hljs-string">&quot;./testdb/000843.ldb&quot;</span>, <br>  [23] = <span class="hljs-string">&quot;./testdb/000845.ldb&quot;</span>, [24] = <span class="hljs-string">&quot;./testdb/000846.ldb&quot;</span>, [25] = <span class="hljs-string">&quot;./testdb/000849.ldb&quot;</span>, [26] = <span class="hljs-string">&quot;./testdb/000850.ldb&quot;</span>, [27] = <span class="hljs-string">&quot;./testdb/000851.ldb&quot;</span>, [28] = <span class="hljs-string">&quot;./testdb/000852.ldb&quot;</span>, <br>  [29] = <span class="hljs-string">&quot;./testdb/000853.ldb&quot;</span>, [30] = <span class="hljs-string">&quot;./testdb/000854.ldb&quot;</span>, [31] = <span class="hljs-string">&quot;./testdb/000855.ldb&quot;</span>, [32] = <span class="hljs-string">&quot;./testdb/000856.ldb&quot;</span>, [33] = <span class="hljs-string">&quot;./testdb/000858.ldb&quot;</span>, [34] = <span class="hljs-string">&quot;./testdb/000859.ldb&quot;</span>, <br>  [35] = <span class="hljs-string">&quot;./testdb/000860.ldb&quot;</span>, [36] = <span class="hljs-string">&quot;./testdb/000861.ldb&quot;</span>, [37] = <span class="hljs-string">&quot;./testdb/000863.ldb&quot;</span>, [38] = <span class="hljs-string">&quot;./testdb/000864.ldb&quot;</span>, [39] = <span class="hljs-string">&quot;./testdb/000865.ldb&quot;</span>, [40] = <span class="hljs-string">&quot;./testdb/000866.ldb&quot;</span>, <br>  [41] = <span class="hljs-string">&quot;./testdb/000867.ldb&quot;</span>, [42] = <span class="hljs-string">&quot;./testdb/000868.ldb&quot;</span>, [43] = <span class="hljs-string">&quot;./testdb/000869.ldb&quot;</span>, [44] = <span class="hljs-string">&quot;./testdb/000870.ldb&quot;</span>, [45] = <span class="hljs-string">&quot;./testdb/000871.ldb&quot;</span>, [46] = <span class="hljs-string">&quot;./testdb/000873.ldb&quot;</span>, <br>  [47] = <span class="hljs-string">&quot;./testdb/000887.ldb&quot;</span>, [48] = <span class="hljs-string">&quot;./testdb/000888.ldb&quot;</span>, [49] = <span class="hljs-string">&quot;./testdb/000890.ldb&quot;</span>, [50] = <span class="hljs-string">&quot;./testdb/000891.ldb&quot;</span>, [51] = <span class="hljs-string">&quot;./testdb/000892.ldb&quot;</span>, [52] = <span class="hljs-string">&quot;./testdb/000893.ldb&quot;</span>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h5 id="AER"><a href="#AER" class="headerlink" title="AER"></a>AER</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs bash">2024-03-11 15:27:02.036029] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036044] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036055] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036065] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036077] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036086] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036098] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036111] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036120] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036137] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036150] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036160] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br>[2024-03-11 15:27:02.036176] bdev_nvme.c:5074:aer_cb: *WARNING*: AER request execute failed<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Signature for callback function invoked when an asynchronous event request</span><br><span class="hljs-comment"> * command is completed.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * \param aer_cb_arg Context specified by spdk_nvme_register_aer_callback().</span><br><span class="hljs-comment"> * \param cpl Completion queue entry that contains the completion status</span><br><span class="hljs-comment"> * of the asynchronous event request that was completed.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">typedef</span> <span class="hljs-title function_">void</span> <span class="hljs-params">(*spdk_nvme_aer_cb)</span><span class="hljs-params">(<span class="hljs-type">void</span> *aer_cb_arg,</span><br><span class="hljs-params">				 <span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> spdk_nvme_cpl *cpl)</span>;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Register callback function invoked when an AER command is completed for the</span><br><span class="hljs-comment"> * given NVMe controller.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * \param ctrlr Opaque handle to NVMe controller.</span><br><span class="hljs-comment"> * \param aer_cb_fn Callback function invoked when an asynchronous event request</span><br><span class="hljs-comment"> * command is completed.</span><br><span class="hljs-comment"> * \param aer_cb_arg Argument passed to callback function.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">void</span> <span class="hljs-title function_">spdk_nvme_ctrlr_register_aer_callback</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> spdk_nvme_ctrlr *ctrlr,</span><br><span class="hljs-params">		spdk_nvme_aer_cb aer_cb_fn,</span><br><span class="hljs-params">		<span class="hljs-type">void</span> *aer_cb_arg)</span>;<br><br><br>spdk_nvme_ctrlr_register_aer_callback(ctrlr, aer_cb, nvme_ctrlr);<br><br><span class="hljs-type">static</span> <span class="hljs-type">void</span><br><span class="hljs-title function_">aer_cb</span><span class="hljs-params">(<span class="hljs-type">void</span> *arg, <span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> spdk_nvme_cpl *cpl)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">nvme_ctrlr</span> *<span class="hljs-title">nvme_ctrlr</span>		=</span> arg;<br>	<span class="hljs-class"><span class="hljs-keyword">union</span> <span class="hljs-title">spdk_nvme_async_event_completion</span>	<span class="hljs-title">event</span>;</span><br><br>	<span class="hljs-keyword">if</span> (spdk_nvme_cpl_is_error(cpl)) &#123;<br>		SPDK_WARNLOG(<span class="hljs-string">&quot;AER request execute failed\n&quot;</span>);<br>		<span class="hljs-keyword">return</span>;<br>	&#125;<br><br>	event.raw = cpl-&gt;cdw0;<br>	<span class="hljs-keyword">if</span> ((event.bits.async_event_type == SPDK_NVME_ASYNC_EVENT_TYPE_NOTICE) &amp;&amp;<br>	    (event.bits.async_event_info == SPDK_NVME_ASYNC_EVENT_NS_ATTR_CHANGED)) &#123;<br>		nvme_ctrlr_populate_namespaces(nvme_ctrlr, <span class="hljs-literal">NULL</span>);<br>	&#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ((event.bits.async_event_type == SPDK_NVME_ASYNC_EVENT_TYPE_NOTICE) &amp;&amp;<br>		   (event.bits.async_event_info == SPDK_NVME_ASYNC_EVENT_ANA_CHANGE)) &#123;<br>		nvme_ctrlr_read_ana_log_page(nvme_ctrlr);<br>	&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c">	<span class="hljs-comment">// nvme_ctrlr_set_state(ctrlr, NVME_CTRLR_STATE_CONFIGURE_AER,</span><br>	<span class="hljs-comment">// 		     ctrlr-&gt;opts.admin_timeout_ms);</span><br>	nvme_ctrlr_set_state(ctrlr, NVME_CTRLR_STATE_SET_KEEP_ALIVE_TIMEOUT,<br>			     ctrlr-&gt;opts.admin_timeout_ms);<br><br>	<span class="hljs-keyword">case</span> NVME_CTRLR_STATE_CONFIGURE_AER:<br>		rc = nvme_ctrlr_configure_aer(ctrlr);<br>		<span class="hljs-keyword">break</span>;<br><br>	<span class="hljs-keyword">case</span> NVME_CTRLR_STATE_SET_KEEP_ALIVE_TIMEOUT:<br>		rc = nvme_ctrlr_set_keep_alive_timeout(ctrlr);<br>		<span class="hljs-keyword">break</span>;<br><br><br><span class="hljs-type">static</span> <span class="hljs-type">void</span><br><span class="hljs-title function_">nvme_ctrlr_configure_aer_done</span><span class="hljs-params">(<span class="hljs-type">void</span> *arg, <span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> spdk_nvme_cpl *cpl)</span><br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">nvme_async_event_request</span>		*<span class="hljs-title">aer</span>;</span><br>	<span class="hljs-type">int</span>					rc;<br>	<span class="hljs-type">uint32_t</span>				i;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spdk_nvme_ctrlr</span> *<span class="hljs-title">ctrlr</span> =</span>	(<span class="hljs-keyword">struct</span> spdk_nvme_ctrlr *)arg;<br><br>	<span class="hljs-keyword">if</span> (spdk_nvme_cpl_is_error(cpl)) &#123;<br>		NVME_CTRLR_NOTICELOG(ctrlr, <span class="hljs-string">&quot;nvme_ctrlr_configure_aer failed!\n&quot;</span>);<br>		ctrlr-&gt;num_aers = <span class="hljs-number">0</span>;<br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-comment">/* aerl is a zero-based value, so we need to add 1 here. */</span><br>		ctrlr-&gt;num_aers = spdk_min(NVME_MAX_ASYNC_EVENTS, (ctrlr-&gt;cdata.aerl + <span class="hljs-number">1</span>));<br>	&#125;<br><br>	<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; ctrlr-&gt;num_aers; i++) &#123;<br>		aer = &amp;ctrlr-&gt;aer[i];<br>		rc = nvme_ctrlr_construct_and_submit_aer(ctrlr, aer);<br>		<span class="hljs-keyword">if</span> (rc) &#123;<br>			NVME_CTRLR_ERRLOG(ctrlr, <span class="hljs-string">&quot;nvme_ctrlr_construct_and_submit_aer failed!\n&quot;</span>);<br>			nvme_ctrlr_set_state(ctrlr, NVME_CTRLR_STATE_ERROR, NVME_TIMEOUT_INFINITE);<br>			<span class="hljs-keyword">return</span>;<br>		&#125;<br>	&#125;<br>	nvme_ctrlr_set_state(ctrlr, NVME_CTRLR_STATE_SET_KEEP_ALIVE_TIMEOUT, ctrlr-&gt;opts.admin_timeout_ms);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+
+
+<h5 id="multi-kv"><a href="#multi-kv" class="headerlink" title="multi-kv"></a>multi-kv</h5><p>底层SST无需层级压缩</p>
+<p>std::list<uint64_t> full_zone_ 按寿命进行排序与压缩</p>
+<p>kTrivialMoveFile SST文件特殊处理</p>
+<p>亲和文件</p>
+<p>高层有可能一直不进行Compaction，但TrivialMoveFile一直停留在上一个level中zone集合中，待以上zone集合较满后则会进行重置GC，将其迁移至合适的区域，但可以以小概率修改触发level级条件</p>
+<h5 id="实验指标"><a href="#实验指标" class="headerlink" title="实验指标"></a>实验指标</h5><p>写入量分解</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202403030820220.png" srcset="/img/loading.gif" lazyload></p>
+<p>吞吐量标准差</p>
+<p>use zone</p>
+<p>吞吐量与ops</p>
+<h5 id="confzns"><a href="#confzns" class="headerlink" title="confzns"></a>confzns</h5><p><a target="_blank" rel="noopener" href="https://weipp7.gitee.io/posts/0.html#SSD%E8%AE%BE%E5%A4%87%E5%92%8CZNS%E5%8D%8F%E8%AE%AE-background">ConfZNS分析</a></p>
+<h4 id="idea-2"><a href="#idea-2" class="headerlink" title="idea-2"></a>idea-2</h4><p>idea-2</p>
+<p>指标分流</p>
+<p>Compact模块 优先级 zone关系</p>
+<p>zone重映射  femu加时延</p>
+<p>baseline </p>
+<p>time bound</p>
+<p>zone 拷贝</p>
+<p>硬Compaction</p>
+<p>Enabling Timely and Persistent Deletion in LSM-Engines</p>
+<p>Lethe: A Tunable Delete-Aware LSM Engine</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/647180030">全网最细！LSM-tree delete 性能优化(RocksDB,Lethe)</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/604649351">《Lethe: A Tunable Delete-Aware LSM Engine》笔记</a></p>
+<p><a target="_blank" rel="noopener" href="https://disc-projects.bu.edu/lethe/">https://disc-projects.bu.edu/lethe/</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/BU-DiSC/lethe-codebase.git">https://github.com/BU-DiSC/lethe-codebase.git</a></p>
+<h5 id="work-version无法中止"><a href="#work-version无法中止" class="headerlink" title="work_version无法中止"></a>work_version无法中止</h5><p>问题所在：key为string而不是int</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c">  <span class="hljs-keyword">while</span> (!workload_file.eof()) &#123;<br>    <span class="hljs-type">char</span> instruction;<br>    <span class="hljs-type">long</span> key, start_key, end_key;<br>    <span class="hljs-built_in">string</span> value;<br>    workload_file &gt;&gt; instruction;<br>    _env-&gt;current_op = instruction;  <span class="hljs-comment">// !YBS-sep18-XX!</span><br>      <br> <span class="hljs-comment">// key为long类型</span><br>  <span class="hljs-meta">#<span class="hljs-keyword">define</span> STRING_KEY_ENABLED true</span><br>  <span class="hljs-keyword">if</span>(!STRING_KEY_ENABLED &amp;&amp; (lambda &gt; <span class="hljs-number">0</span> &amp;&amp; lambda &lt; <span class="hljs-number">1</span>))&#123;<br>	key_size = <span class="hljs-keyword">sizeof</span>(<span class="hljs-type">uint32_t</span>);<br>  &#125;<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(lambda &gt; <span class="hljs-number">0</span> &amp;&amp; lambda &lt; <span class="hljs-number">1</span>)&#123;<br>        key_size = lambda * entry_size;<br>  &#125;<br>  刚开始STRING_KEY_ENABLED为<span class="hljs-literal">true</span>，导致key一直为<span class="hljs-built_in">string</span><br>  改成<span class="hljs-literal">false</span>后生成数值的key<br>I <span class="hljs-number">3956937496</span> xdnjnSXekJoQPcPlI  <br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">UpdateFilesByCompactionPri</span><br><span class="hljs-function">    </span><br><span class="hljs-function">ComputeCompactionScore</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">VersionStorageInfo::ComputeCompensatedSizes</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-type">int</span> kDeletionWeightOnCompaction = <span class="hljs-number">2</span>;<br>  <span class="hljs-type">uint64_t</span> average_value_size = <span class="hljs-built_in">GetAverageValueSize</span>();<br><br>  <span class="hljs-comment">// compute the compensated size</span><br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> level = <span class="hljs-number">0</span>; level &lt; num_levels_; level++) &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>* file_meta : files_[level]) &#123;<br>      <span class="hljs-comment">// Here we only compute compensated_file_size for those file_meta</span><br>      <span class="hljs-comment">// which compensated_file_size is uninitialized (== 0). This is true only</span><br>      <span class="hljs-comment">// for files that have been created right now and no other thread has</span><br>      <span class="hljs-comment">// access to them. That&#x27;s why we can safely mutate compensated_file_size.</span><br>      <span class="hljs-keyword">if</span> (file_meta-&gt;compensated_file_size == <span class="hljs-number">0</span>) &#123;<br>        file_meta-&gt;compensated_file_size = file_meta-&gt;fd.<span class="hljs-built_in">GetFileSize</span>();<br>        <span class="hljs-comment">// Here we only boost the size of deletion entries of a file only</span><br>        <span class="hljs-comment">// when the number of deletion entries is greater than the number of</span><br>        <span class="hljs-comment">// non-deletion entries in the file.  The motivation here is that in</span><br>        <span class="hljs-comment">// a stable workload, the number of deletion entries should be roughly</span><br>        <span class="hljs-comment">// equal to the number of non-deletion entries.  If we compensate the</span><br>        <span class="hljs-comment">// size of deletion entries in a stable workload, the deletion</span><br>        <span class="hljs-comment">// compensation logic might introduce unwanted effet which changes the</span><br>        <span class="hljs-comment">// shape of LSM tree.</span><br>        <span class="hljs-keyword">if</span> (file_meta-&gt;num_deletions * <span class="hljs-number">2</span> &gt;= file_meta-&gt;num_entries) &#123;<br>          file_meta-&gt;compensated_file_size += (file_meta-&gt;num_deletions * <span class="hljs-number">2</span> - file_meta-&gt;num_entries) * average_value_size * kDeletionWeightOnCompaction;<br>        &#125;<br>      &#125;<br>    &#125;<br>  &#125;<br>&#125;<br><br><br><br>        <span class="hljs-keyword">auto</span> c = (std::chrono::<span class="hljs-built_in">duration</span>&lt;<span class="hljs-type">double</span>, std::milli&gt;(current_timestamp - files[i]-&gt;fd.file_timestamp)).<span class="hljs-built_in">count</span>();<br>        <span class="hljs-type">double</span> level_delete_persistence_latency = _env-&gt;<span class="hljs-built_in">GetLevelDeletePersistenceLatency</span>(level, _env);<br>        <span class="hljs-keyword">if</span> (c &gt; level_delete_persistence_latency * <span class="hljs-number">1000</span> &amp;&amp; level_delete_persistence_latency != <span class="hljs-number">-1</span> &amp;&amp; files[i]-&gt;num_deletions &gt; <span class="hljs-number">0</span>) &#123;<br>          <span class="hljs-keyword">if</span> (_env-&gt;verbosity &gt;= <span class="hljs-number">2</span>) std::cout &lt;&lt; c &lt;&lt; <span class="hljs-string">&quot; &gt; &quot;</span> &lt;&lt; level_delete_persistence_latency &lt;&lt; std::endl;<br>          files[i]-&gt;fd.expired_ttl = <span class="hljs-literal">true</span>;<br>        &#125;<br><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">GetExpiredTTL</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> expired_ttl; <span class="hljs-comment">// &amp; kFileNumberMask;</span><br>  &#125;<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<p>Lethe确保及时删除持久性。图6 (E)显示了实验结束时墓碑年龄的分布，说明Lethe保证了及时的持久删除。x轴表示包含墓碑文件的所有文件的年龄，y轴表示快照瞬间的累积墓碑数量，其年龄等于或小于x轴值。Lethe的目标是拥有比现有技术更少的、年龄更小的墓碑，并且所有墓碑的年龄都小于d。我们表明，与RocksDB相比，Lethe保留的墓碑要多40%到80%，而且是在遵守删除持久性阈值的情况下做到的。对于Dth&#x3D; 50%的实验运行时间，而RocksDB有~ 40000个墓碑(即，所有插入的墓碑的~ 40%)分布在比Dth更早的文件中，Lethe保留阈值内的所有删除</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202403192342330.png" srcset="/img/loading.gif" lazyload></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">option(WITH_ALL_TESTS <span class="hljs-string">&quot;Build all test, rather than a small subset&quot;</span> OFF)<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">define</span> NDEBUG</span><br>关闭断言<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">ZenFS::GCWorker</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-keyword">while</span> (run_gc_worker_) &#123;<br>    <span class="hljs-built_in">usleep</span>(<span class="hljs-number">1000</span> * <span class="hljs-number">1000</span> * <span class="hljs-number">10</span>);<br><br>    <span class="hljs-type">uint64_t</span> non_free = zbd_-&gt;<span class="hljs-built_in">GetUsedSpace</span>() + zbd_-&gt;<span class="hljs-built_in">GetReclaimableSpace</span>();<br>    <span class="hljs-type">uint64_t</span> free = zbd_-&gt;<span class="hljs-built_in">GetFreeSpace</span>();<br>    <span class="hljs-type">uint64_t</span> free_percent = (<span class="hljs-number">100</span> * free) / (free + non_free);<br>    ZenFSSnapshot snapshot;<br>    ZenFSSnapshotOptions options;<br><br>    <span class="hljs-keyword">if</span> (free_percent &gt; GC_START_LEVEL) <span class="hljs-keyword">continue</span>;<br><br>    options.zone_ = <span class="hljs-number">1</span>;<br>    options.zone_file_ = <span class="hljs-number">1</span>;<br>    options.log_garbage_ = <span class="hljs-number">1</span>;<br><br>    <span class="hljs-built_in">GetZenFSSnapshot</span>(snapshot, options);<br><br>    <span class="hljs-type">uint64_t</span> threshold = (<span class="hljs-number">100</span> - GC_SLOPE * (GC_START_LEVEL - free_percent));<br>    std::set&lt;<span class="hljs-type">uint64_t</span>&gt; migrate_zones_start;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; zone : snapshot.zones_) &#123;<br>      <span class="hljs-keyword">if</span> (zone.capacity == <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-type">uint64_t</span> garbage_percent_approx =<br>            <span class="hljs-number">100</span> - <span class="hljs-number">100</span> * zone.used_capacity / zone.max_capacity;<br>        <span class="hljs-keyword">if</span> (garbage_percent_approx &gt; threshold &amp;&amp;<br>            garbage_percent_approx &lt; <span class="hljs-number">100</span>) &#123;<br>          migrate_zones_start.<span class="hljs-built_in">emplace</span>(zone.start);<br>        &#125;<br>      &#125;<br>    &#125;<br><br>    std::vector&lt;ZoneExtentSnapshot*&gt; migrate_exts;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; ext : snapshot.extents_) &#123;<br>      <span class="hljs-keyword">if</span> (migrate_zones_start.<span class="hljs-built_in">find</span>(ext.zone_start) !=<br>          migrate_zones_start.<span class="hljs-built_in">end</span>()) &#123;<br>        migrate_exts.<span class="hljs-built_in">push_back</span>(&amp;ext);<br>      &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (migrate_exts.<span class="hljs-built_in">size</span>() &gt; <span class="hljs-number">0</span>) &#123;<br>      IOStatus s;<br>      <span class="hljs-built_in">Info</span>(logger_, <span class="hljs-string">&quot;Garbage collecting %d extents \n&quot;</span>,<br>           (<span class="hljs-type">int</span>)migrate_exts.<span class="hljs-built_in">size</span>());<br>      s = <span class="hljs-built_in">MigrateExtents</span>(migrate_exts);<br>      <span class="hljs-keyword">if</span> (!s.<span class="hljs-built_in">ok</span>()) &#123;<br>        <span class="hljs-built_in">Error</span>(logger_, <span class="hljs-string">&quot;Garbage collection failed&quot;</span>);<br>      &#125;<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h5 id="lethe修改"><a href="#lethe修改" class="headerlink" title="lethe修改"></a>lethe修改</h5><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># ‘block_rep’ may be used uninitialized [-Werror=maybe-uninitialized]</span><br>CXXFLAGS += -Wno-error=maybe-uninitialized<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c">file_age_file.open(<span class="hljs-string">&quot;/Users/subhadeep/Git/shared/infrastructure/rocksdb-fade/examples/__working_branch/file_age_stats.txt&quot;</span>, <span class="hljs-built_in">std</span>::ios_base::app);<br>改成<br>file_age_file.open(<span class="hljs-string">&quot;./file_age_stats.txt&quot;</span>, <span class="hljs-built_in">std</span>::ios_base::app);<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp">  <span class="hljs-function"><span class="hljs-keyword">virtual</span> IOStatus <span class="hljs-title">Append</span><span class="hljs-params">(<span class="hljs-type">const</span> Slice&amp; data, <span class="hljs-type">const</span> IOOptions&amp; options,</span></span><br><span class="hljs-params"><span class="hljs-function">                          IODebugContext* dbg)</span> <span class="hljs-keyword">override</span></span>;<br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> IOStatus <span class="hljs-title">Append</span><span class="hljs-params">(<span class="hljs-type">const</span> Slice&amp; data, <span class="hljs-type">const</span> IOOptions&amp; opts,</span></span><br><span class="hljs-params"><span class="hljs-function">                          <span class="hljs-type">const</span> DataVerificationInfo&amp; <span class="hljs-comment">/* verification_info */</span>,</span></span><br><span class="hljs-params"><span class="hljs-function">                          IODebugContext* dbg)</span> <span class="hljs-keyword">override</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">Append</span>(data, opts, dbg);<br>  &#125;<br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> IOStatus <span class="hljs-title">PositionedAppend</span><span class="hljs-params">(<span class="hljs-type">const</span> Slice&amp; data, <span class="hljs-type">uint64_t</span> offset,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-type">const</span> IOOptions&amp; options,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    IODebugContext* dbg)</span> <span class="hljs-keyword">override</span></span>;<br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> IOStatus <span class="hljs-title">PositionedAppend</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">      <span class="hljs-type">const</span> Slice&amp; data, <span class="hljs-type">uint64_t</span> offset, <span class="hljs-type">const</span> IOOptions&amp; opts,</span></span><br><span class="hljs-params"><span class="hljs-function">      <span class="hljs-type">const</span> DataVerificationInfo&amp; <span class="hljs-comment">/* verification_info */</span>,</span></span><br><span class="hljs-params"><span class="hljs-function">      IODebugContext* dbg)</span> <span class="hljs-keyword">override</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">PositionedAppend</span>(data, offset, opts, dbg);<br>  &#125;<br><br><br>删掉DataVerificationInfo版本的api<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><br># <span class="hljs-string">&#x27;git describe --abbrev=7 --dirty&#x27;</span> will output a version in that looks like <span class="hljs-string">&quot;v0.1.0-12-g3456789-dirty&quot;</span>.<br>VERSION=$(git describe --abbrev=<span class="hljs-number">7</span> --dirty)<br>改成<br>VERSION=<span class="hljs-string">&quot;v1.0-lt&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>用正确版本的makefile替换当前版本的makefile以编译zenfs</p>
+<p>由于当前Rocksdb并没有CreateFromString，故直接自己加接口与实现，得到ZenFS FileSystem</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">Status <span class="hljs-title">Env::CreateFromUri</span><span class="hljs-params">(<span class="hljs-type">const</span> ConfigOptions&amp; config_options,</span></span><br><span class="hljs-params"><span class="hljs-function">                          <span class="hljs-type">const</span> std::string&amp; env_uri, <span class="hljs-type">const</span> std::string&amp; fs_uri,</span></span><br><span class="hljs-params"><span class="hljs-function">                          Env** result, std::shared_ptr&lt;Env&gt;* guard)</span> </span>&#123;<br>  *result = config_options.env;<br>  <span class="hljs-keyword">if</span> (env_uri.<span class="hljs-built_in">empty</span>() &amp;&amp; fs_uri.<span class="hljs-built_in">empty</span>()) &#123;<br>    <span class="hljs-comment">// Neither specified.  Use the default</span><br>    guard-&gt;<span class="hljs-built_in">reset</span>();<br>    <span class="hljs-keyword">return</span> Status::<span class="hljs-built_in">OK</span>();<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!env_uri.<span class="hljs-built_in">empty</span>() &amp;&amp; !fs_uri.<span class="hljs-built_in">empty</span>()) &#123;<br>    <span class="hljs-comment">// Both specified.  Cannot choose.  Return Invalid</span><br>    <span class="hljs-keyword">return</span> Status::<span class="hljs-built_in">InvalidArgument</span>(<span class="hljs-string">&quot;cannot specify both fs_uri and env_uri&quot;</span>);<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (fs_uri.<span class="hljs-built_in">empty</span>()) &#123;  <span class="hljs-comment">// Only have an ENV URI.  Create an Env from it</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">CreateFromString</span>(config_options, env_uri, result, guard);<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    std::shared_ptr&lt;FileSystem&gt; fs;<br>    Status s = FileSystem::<span class="hljs-built_in">CreateFromString</span>(config_options, fs_uri, &amp;fs);<br>    <span class="hljs-keyword">if</span> (s.<span class="hljs-built_in">ok</span>()) &#123;<br>      guard-&gt;<span class="hljs-built_in">reset</span>(<span class="hljs-keyword">new</span> <span class="hljs-built_in">CompositeEnvWrapper</span>(*result, fs));<br>      *result = guard-&gt;<span class="hljs-built_in">get</span>();<br>    &#125;<br>    <span class="hljs-keyword">return</span> s;<br>  &#125;<br>&#125;<br><br><span class="hljs-function">Status <span class="hljs-title">FileSystem::CreateFromString</span><span class="hljs-params">(<span class="hljs-type">const</span> ConfigOptions&amp; config_options,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-type">const</span> std::string&amp; value,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    std::shared_ptr&lt;FileSystem&gt;* result)</span> </span>&#123;<br>  <span class="hljs-keyword">auto</span> default_fs = FileSystem::<span class="hljs-built_in">Default</span>();<br>  <span class="hljs-keyword">if</span> (default_fs-&gt;<span class="hljs-built_in">IsInstanceOf</span>(value)) &#123;<br>    *result = default_fs;<br>    <span class="hljs-keyword">return</span> Status::<span class="hljs-built_in">OK</span>();<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-type">static</span> std::once_flag once;<br>    std::<span class="hljs-built_in">call_once</span>(once, [&amp;]() &#123;<br>      <span class="hljs-built_in">RegisterBuiltinFileSystems</span>(*(ObjectLibrary::<span class="hljs-built_in">Default</span>().<span class="hljs-built_in">get</span>()), <span class="hljs-string">&quot;&quot;</span>);<br>    &#125;);<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">LoadSharedObject</span>&lt;FileSystem&gt;(config_options, value, result);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// /lethe-codebase/include/rocksdb/file_system.h</span><br><span class="hljs-function">Env* <span class="hljs-title">CreateZenFSEnv</span><span class="hljs-params">(std::string DevID)</span></span>;<br><br><span class="hljs-comment">// /lethe-codebase/plugin/zenfs/fs/fs_zenfs.cc</span><br><span class="hljs-function">Env* <span class="hljs-title">CreateZenFSEnv</span><span class="hljs-params">(std::string DevID)</span> </span>&#123;<br>  FileSystem* fs = <span class="hljs-literal">nullptr</span>;<br>  Status s;<br>  s = <span class="hljs-built_in">NewZenFS</span>(&amp;fs, ZbdBackendType::kBlockDev, DevID);<br>  <span class="hljs-keyword">if</span> (!s.<span class="hljs-built_in">ok</span>()) &#123;<br>    std::cout &lt;&lt; s.<span class="hljs-built_in">ToString</span>() &lt;&lt; std::endl;<br>  &#125;<br>  <span class="hljs-function">std::shared_ptr&lt;FileSystem&gt; <span class="hljs-title">f</span><span class="hljs-params">(fs)</span></span>;<br>  Env* env = <span class="hljs-keyword">new</span> <span class="hljs-built_in">CompositeEnvWrapper</span>(Env::<span class="hljs-built_in">Default</span>(), f);<br>  <span class="hljs-keyword">return</span> env;<br>&#125;<br><span class="hljs-comment">// working_version.cc</span><br>  std::string ZNS_DevID = <span class="hljs-string">&quot;nvme0n1&quot;</span>;<br>  op-&gt;env = <span class="hljs-built_in">CreateZenFSEnv</span>(ZNS_DevID);<br></code></pre></td></tr></table></figure>
+
+
+
+<p>单独增加ZenFS日志</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">static</span> std::string <span class="hljs-title">GetLogFilename</span><span class="hljs-params">(std::string bdev)</span> </span>&#123;<br>  std::ostringstream ss;<br>  <span class="hljs-type">time_t</span> t = <span class="hljs-built_in">time</span>(<span class="hljs-number">0</span>);<br>  <span class="hljs-keyword">struct</span> <span class="hljs-title class_">tm</span>* log_start = std::<span class="hljs-built_in">localtime</span>(&amp;t);<br>  <span class="hljs-type">char</span> buf[<span class="hljs-number">40</span>];<br><br>  std::<span class="hljs-built_in">strftime</span>(buf, <span class="hljs-built_in">sizeof</span>(buf), <span class="hljs-string">&quot;%Y-%m-%d_%H:%M:%S.log&quot;</span>, log_start);<br>  ss &lt;&lt; <span class="hljs-string">&quot;./&quot;</span> &lt;&lt; std::<span class="hljs-built_in">string</span>(<span class="hljs-string">&quot;zenfs_&quot;</span>) &lt;&lt; bdev &lt;&lt; <span class="hljs-string">&quot;_&quot;</span> &lt;&lt; buf;<br><br>  <span class="hljs-keyword">return</span> ss.<span class="hljs-built_in">str</span>();<br>&#125;<br><br>  s = Env::<span class="hljs-built_in">Default</span>()-&gt;<span class="hljs-built_in">NewLogger</span>(<span class="hljs-built_in">GetLogFilename</span>(backend_name), &amp;logger);<br>  std::cout &lt;&lt; <span class="hljs-string">&quot;log name: &quot;</span> &lt;&lt; <span class="hljs-built_in">GetLogFilename</span>(backend_name) &lt;&lt; std::endl;<br>  <span class="hljs-keyword">if</span> (!s.<span class="hljs-built_in">ok</span>()) &#123;<br>    <span class="hljs-built_in">fprintf</span>(stderr, <span class="hljs-string">&quot;ZenFS: Could not create logger&quot;</span>);<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    logger-&gt;<span class="hljs-built_in">SetInfoLogLevel</span>(DEBUG_LEVEL);<br>    <span class="hljs-comment">// #ifdef WITH_TERARKDB</span><br>    <span class="hljs-comment">//     logger-&gt;SetInfoLogLevel(INFO_LEVEL);</span><br>    <span class="hljs-comment">// #endif</span><br>  &#125;<br><br></code></pre></td></tr></table></figure>
+
+
+
+<p>file age文件由追加写改成清空写</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cpp">file_age_file.<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;./file_age_stats.txt&quot;</span>, std::ios_base::out | std::ios_base::trunc);<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h5 id="zenfs"><a href="#zenfs" class="headerlink" title="zenfs"></a>zenfs</h5><p>安装libzbd：<a target="_blank" rel="noopener" href="https://github.com/westerndigitalcorporation/libzbd">https://github.com/westerndigitalcorporation/libzbd</a></p>
+<p>安装gflags：<code>apt-get install libgflags-dev</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">/usr/bin/ld: /tmp/cc9CnjMI.o: <span class="hljs-keyword">in</span> <span class="hljs-keyword">function</span> `main<span class="hljs-string">&#x27;:</span><br><span class="hljs-string">/root/rocksdb/plugin/zenfs/util/zenfs.cc:775: undefined reference to `google::SetUsageMessage(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)&#x27;</span><br>/usr/bin/ld: /root/rocksdb/plugin/zenfs/util/zenfs.cc:787: undefined reference to `google::SetVersionString(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)<span class="hljs-string">&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs makefile"><span class="hljs-comment"># /root/rocksdb/plugin/zenfs/util/Makefile</span><br><span class="hljs-variable">$(TARGET)</span>: <span class="hljs-variable">$(TARGET)</span>.cc<br>	<span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$(CXXFLAGS)</span> -g -o <span class="hljs-variable">$(TARGET)</span> <span class="hljs-variable">$&lt;</span> <span class="hljs-variable">$(LIBS)</span> <span class="hljs-variable">$(LDFLAGS)</span> -lgflags <span class="hljs-comment"># 加上gflags第三方库</span><br></code></pre></td></tr></table></figure>
+
+
+
+<p><strong>invalid new-expression of abstract class type ‘rocksdb::ZonedWritableFile’</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-keyword">for</span> header_dir <span class="hljs-keyword">in</span> `find <span class="hljs-string">&quot;include/rocksdb&quot;</span> -<span class="hljs-built_in">type</span> d`; <span class="hljs-keyword">do</span> \<br>        install -d //usr/local/<span class="hljs-variable">$header_dir</span>; \<br><span class="hljs-keyword">done</span><br><span class="hljs-keyword">for</span> header <span class="hljs-keyword">in</span> `find <span class="hljs-string">&quot;include/rocksdb&quot;</span> -<span class="hljs-built_in">type</span> f -name *.h`; <span class="hljs-keyword">do</span> \<br>        install -C -m 644 <span class="hljs-variable">$header</span> //usr/local/<span class="hljs-variable">$header</span>; \<br><span class="hljs-keyword">done</span><br>plugin/zenfs/fs/fs_zenfs.cc: In member <span class="hljs-keyword">function</span> ‘rocksdb::IOStatus rocksdb::ZenFS::OpenWritableFile(const string&amp;, const rocksdb::FileOptions&amp;, std::unique_ptr&lt;rocksdb::FSWritableFile&gt;*, rocksdb::IODebugContext*, bool)’:<br>plugin/zenfs/fs/fs_zenfs.cc:779:70: error: invalid new-expression of abstract class <span class="hljs-built_in">type</span> ‘rocksdb::ZonedWritableFile’<br>  779 |                                           zoneFile, &amp;metadata_writer_));<br>      |                                                                      ^<br>In file included from plugin/zenfs/fs/fs_zenfs.h:12,<br>                 from plugin/zenfs/fs/fs_zenfs.cc:9:<br>plugin/zenfs/fs/io_zenfs.h:186:7: note:   because the following virtual <span class="hljs-built_in">functions</span> are pure within ‘rocksdb::ZonedWritableFile’:<br>  186 | class ZonedWritableFile : public FSWritableFile &#123;<br>      |       ^~~~~~~~~~~~~~~~~<br>In file included from plugin/zenfs/fs/io_zenfs.h:24,<br>                 from plugin/zenfs/fs/fs_zenfs.h:12,<br>                 from plugin/zenfs/fs/fs_zenfs.cc:9:<br>./include/rocksdb/file_system.h:1168:20: note:     ‘virtual uint64_t rocksdb::FSWritableFile::GetFileSize(const rocksdb::IOOptions&amp;, rocksdb::IODebugContext*)’<br> 1168 |   virtual uint64_t GetFileSize(const IOOptions&amp; /*options*/,<br>      |                    ^~~~~~~~~~~<br>plugin/zenfs/fs/fs_zenfs.cc:810:68: error: invalid new-expression of abstract class <span class="hljs-built_in">type</span> ‘rocksdb::ZonedWritableFile’<br>  810 |                                         zoneFile, &amp;metadata_writer_));<br>      |                                                                    ^<br><span class="hljs-keyword">for</span> header <span class="hljs-keyword">in</span>   plugin/zenfs/fs/fs_zenfs.h  plugin/zenfs/fs/zbd_zenfs.h  plugin/zenfs/fs/io_zenfs.h  plugin/zenfs/fs/version.h  plugin/zenfs/fs/metrics.h  plugin/zenfs/fs/snapshot.h; <span class="hljs-keyword">do</span> \<br>        install -d //usr/local/include/rocksdb/`<span class="hljs-built_in">dirname</span> <span class="hljs-variable">$header</span>`; \<br>        install -C -m 644 <span class="hljs-variable">$header</span> //usr/local/include/rocksdb/<span class="hljs-variable">$header</span>; \<br><span class="hljs-keyword">done</span><br>install -C -m 644 rocksdb.pc /usr/local/lib/pkgconfig/rocksdb.pc<br>make: *** [Makefile:2535: plugin/zenfs/fs/fs_zenfs.o] Error 1<br>make: *** Waiting <span class="hljs-keyword">for</span> unfinished <span class="hljs-built_in">jobs</span>....<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 实现GetFileSize方法即可  </span><br>virtual <span class="hljs-type">uint64_t</span> <span class="hljs-title function_">GetFileSize</span><span class="hljs-params">(<span class="hljs-type">const</span> IOOptions&amp; <span class="hljs-comment">/*options*/</span>,</span><br><span class="hljs-params">                               IODebugContext* <span class="hljs-comment">/*dbg*/</span>)</span>;<br><br><span class="hljs-type">uint64_t</span> <span class="hljs-title function_">ZonedWritableFile::GetFileSize</span><span class="hljs-params">(<span class="hljs-type">const</span> IOOptions&amp; <span class="hljs-comment">/*options*/</span>,</span><br><span class="hljs-params">                                        IODebugContext* <span class="hljs-comment">/*dbg*/</span>)</span> &#123;<br>  <span class="hljs-keyword">return</span> zoneFile_-&gt;GetFileSize();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h5 id=""><a href="#" class="headerlink" title=""></a></h5><h5 id="git-rm-–cached-plugin-zenfs"><a href="#git-rm-–cached-plugin-zenfs" class="headerlink" title="git rm –cached plugin&#x2F;zenfs"></a>git rm –cached plugin&#x2F;zenfs</h5><h5 id="比较函数"><a href="#比较函数" class="headerlink" title="比较函数"></a>比较函数</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">auto</span> cmp = [&amp;current_timestamp, &amp;level_delete_persistence_latency](<span class="hljs-type">const</span> Fsize&amp; f1, <span class="hljs-type">const</span> Fsize&amp; f2) -&gt; <span class="hljs-type">bool</span> &#123;<br>  <span class="hljs-keyword">auto</span> c1 = (<span class="hljs-built_in">std</span>::chrono::duration&lt;<span class="hljs-type">double</span>, <span class="hljs-built_in">std</span>::milli&gt;(current_timestamp - f1.file-&gt;fd.file_timestamp)).count();<br>  <span class="hljs-keyword">auto</span> c2 = (<span class="hljs-built_in">std</span>::chrono::duration&lt;<span class="hljs-type">double</span>, <span class="hljs-built_in">std</span>::milli&gt;(current_timestamp - f2.file-&gt;fd.file_timestamp)).count();<br>  <span class="hljs-keyword">if</span> (c1 &gt; level_delete_persistence_latency * <span class="hljs-number">1000</span> &amp;&amp; c2 &gt; level_delete_persistence_latency * <span class="hljs-number">1000</span> &amp;&amp; level_delete_persistence_latency != <span class="hljs-number">-1</span>) &#123;<br>    <span class="hljs-keyword">if</span> (c1 == c2) &#123;<br>      <span class="hljs-keyword">return</span> f1.file-&gt;num_deletions &gt; f2.file-&gt;num_deletions;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      <span class="hljs-keyword">return</span> c1 &gt; c2;<br>    &#125;<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (c1 &gt; level_delete_persistence_latency * <span class="hljs-number">1000</span> &amp;&amp; c2 &lt;= level_delete_persistence_latency * <span class="hljs-number">1000</span> &amp;&amp; level_delete_persistence_latency != <span class="hljs-number">-1</span>) &#123;<br>    <span class="hljs-keyword">return</span> c1 &gt; c2;<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (c1 &lt;= level_delete_persistence_latency * <span class="hljs-number">1000</span> &amp;&amp; c2 &gt; level_delete_persistence_latency * <span class="hljs-number">1000</span> &amp;&amp; level_delete_persistence_latency != <span class="hljs-number">-1</span>) &#123;<br>    <span class="hljs-keyword">return</span> c2 &gt; c1;<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-keyword">return</span> f1.file-&gt;num_deletions &lt; f2.file-&gt;num_deletions;<br>  &#125;<br>&#125;;<br><span class="hljs-built_in">std</span>::sort(temp.begin(), temp.end(), cmp);<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c">$<span class="hljs-number">1</span> = <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span> of length <span class="hljs-number">104</span>, capacity <span class="hljs-number">104</span> = &#123;&#123;index = <span class="hljs-number">64</span>, file = <span class="hljs-number">0x7fffec1ab120</span>&#125;, &#123;index = <span class="hljs-number">64</span>, file = <span class="hljs-number">0x7fffec1ab120</span>&#125;, &#123;index = <span class="hljs-number">76</span>, file = <span class="hljs-number">0x7fffec56f600</span>&#125;, &#123;index = <span class="hljs-number">75</span>, file = <span class="hljs-number">0x7fffec11b0d0</span>&#125;, &#123;index = <span class="hljs-number">74</span>, <br>    file = <span class="hljs-number">0x7fffec11af30</span>&#125;, &#123;index = <span class="hljs-number">73</span>, file = <span class="hljs-number">0x7fffec11ad90</span>&#125;, &#123;index = <span class="hljs-number">72</span>, file = <span class="hljs-number">0x7fffec5701e0</span>&#125;, &#123;index = <span class="hljs-number">71</span>, file = <span class="hljs-number">0x7fffec570040</span>&#125;, &#123;index = <span class="hljs-number">70</span>, file = <span class="hljs-number">0x7fffec56fea0</span>&#125;, &#123;index = <span class="hljs-number">69</span>, <br>    file = <span class="hljs-number">0x7fffec0d5a30</span>&#125;, &#123;index = <span class="hljs-number">68</span>, file = <span class="hljs-number">0x7fffec0d5890</span>&#125;, &#123;index = <span class="hljs-number">67</span>, file = <span class="hljs-number">0x7fffec0d56f0</span>&#125;, &#123;index = <span class="hljs-number">66</span>, file = <span class="hljs-number">0x7fffec1ab460</span>&#125;, &#123;index = <span class="hljs-number">65</span>, file = <span class="hljs-number">0x7fffec1ab2c0</span>&#125;, &#123;index = <span class="hljs-number">77</span>, <br>    file = <span class="hljs-number">0x7fffe800d000</span>&#125;, &#123;index = <span class="hljs-number">63</span>, file = <span class="hljs-number">0x7fffec5d7c40</span>&#125;, &#123;index = <span class="hljs-number">62</span>, file = <span class="hljs-number">0x7fffec5d7aa0</span>&#125;, &#123;index = <span class="hljs-number">61</span>, file = <span class="hljs-number">0x7fffec5d7900</span>&#125;, &#123;index = <span class="hljs-number">60</span>, file = <span class="hljs-number">0x7fffec106290</span>&#125;, &#123;index = <span class="hljs-number">59</span>, <br>    file = <span class="hljs-number">0x7fffec1060f0</span>&#125;, &#123;index = <span class="hljs-number">58</span>, file = <span class="hljs-number">0x7fffe0033430</span>&#125;, &#123;index = <span class="hljs-number">57</span>, file = <span class="hljs-number">0x7fffec5f4f80</span>&#125;, &#123;index = <span class="hljs-number">56</span>, file = <span class="hljs-number">0x7fffe80f29d0</span>&#125;, &#123;index = <span class="hljs-number">55</span>, file = <span class="hljs-number">0x7ffff03d9100</span>&#125;, &#123;index = <span class="hljs-number">54</span>, <br>    file = <span class="hljs-number">0x7fffe821e820</span>&#125;, &#123;index = <span class="hljs-number">53</span>, file = <span class="hljs-number">0x7fffec0c7ee0</span>&#125;, &#123;index = <span class="hljs-number">52</span>, file = <span class="hljs-number">0x7fffec0b3fe0</span>&#125;, &#123;index = <span class="hljs-number">90</span>, file = <span class="hljs-number">0x7fffe82fa9c0</span>&#125;, &#123;index = <span class="hljs-number">102</span>, file = <span class="hljs-number">0x7fffec065780</span>&#125;, &#123;index = <span class="hljs-number">101</span>, <br>    file = <span class="hljs-number">0x7ffff051b320</span>&#125;, &#123;index = <span class="hljs-number">100</span>, file = <span class="hljs-number">0x7fffe817c5f0</span>&#125;, &#123;index = <span class="hljs-number">99</span>, file = <span class="hljs-number">0x7fffe817c450</span>&#125;, &#123;index = <span class="hljs-number">98</span>, file = <span class="hljs-number">0x7fffe817c2b0</span>&#125;, &#123;index = <span class="hljs-number">97</span>, file = <span class="hljs-number">0x7fffe817c110</span>&#125;, &#123;index = <span class="hljs-number">96</span>, <br>    file = <span class="hljs-number">0x7fffe817bf70</span>&#125;, &#123;index = <span class="hljs-number">95</span>, file = <span class="hljs-number">0x7fffe82fb1e0</span>&#125;, &#123;index = <span class="hljs-number">94</span>, file = <span class="hljs-number">0x7fffe82fb040</span>&#125;, &#123;index = <span class="hljs-number">93</span>, file = <span class="hljs-number">0x7fffe82faea0</span>&#125;, &#123;index = <span class="hljs-number">92</span>, file = <span class="hljs-number">0x7fffe82fad00</span>&#125;, &#123;index = <span class="hljs-number">91</span>, <br>    file = <span class="hljs-number">0x7fffe82fab60</span>&#125;, &#123;index = <span class="hljs-number">1</span>, file = <span class="hljs-number">0x7ffff032e8b0</span>&#125;, &#123;index = <span class="hljs-number">89</span>, file = <span class="hljs-number">0x7fffe84333b0</span>&#125;, &#123;index = <span class="hljs-number">88</span>, file = <span class="hljs-number">0x7fffe8433210</span>&#125;, &#123;index = <span class="hljs-number">87</span>, file = <span class="hljs-number">0x7fffe8433070</span>&#125;, &#123;index = <span class="hljs-number">86</span>, file = <span class="hljs-number">0x7fffe8432ed0</span>&#125;, <br>  &#123;index = <span class="hljs-number">85</span>, file = <span class="hljs-number">0x7fffe8432d30</span>&#125;, &#123;index = <span class="hljs-number">84</span>, file = <span class="hljs-number">0x7fffe8057bd0</span>&#125;, &#123;index = <span class="hljs-number">83</span>, file = <span class="hljs-number">0x7ffff03b1200</span>&#125;, &#123;index = <span class="hljs-number">82</span>, file = <span class="hljs-number">0x7fffe8139460</span>&#125;, &#123;index = <span class="hljs-number">81</span>, file = <span class="hljs-number">0x7fffe80366c0</span>&#125;, &#123;index = <span class="hljs-number">80</span>, <br>    file = <span class="hljs-number">0x7fffe8126ad0</span>&#125;, &#123;index = <span class="hljs-number">79</span>, file = <span class="hljs-number">0x7fffe8347480</span>&#125;, &#123;index = <span class="hljs-number">78</span>, file = <span class="hljs-number">0x7fffe814ec90</span>&#125;, &#123;index = <span class="hljs-number">13</span>, file = <span class="hljs-number">0x7ffff0234720</span>&#125;, &#123;index = <span class="hljs-number">25</span>, file = <span class="hljs-number">0x7ffff044b150</span>&#125;, &#123;index = <span class="hljs-number">24</span>, <br>    file = <span class="hljs-number">0x7ffff0579b90</span>&#125;, &#123;index = <span class="hljs-number">23</span>, file = <span class="hljs-number">0x7ffff05799f0</span>&#125;, &#123;index = <span class="hljs-number">22</span>, file = <span class="hljs-number">0x7ffff0372c40</span>&#125;, &#123;index = <span class="hljs-number">21</span>, file = <span class="hljs-number">0x7ffff0372ac0</span>&#125;, &#123;index = <span class="hljs-number">20</span>, file = <span class="hljs-number">0x7ffff023e660</span>&#125;, &#123;index = <span class="hljs-number">19</span>, <br>    file = <span class="hljs-number">0x7ffff023e4c0</span>&#125;, &#123;index = <span class="hljs-number">18</span>, file = <span class="hljs-number">0x7ffff0245410</span>&#125;, &#123;index = <span class="hljs-number">17</span>, file = <span class="hljs-number">0x7ffff0245270</span>&#125;, &#123;index = <span class="hljs-number">16</span>, file = <span class="hljs-number">0x7ffff03e5420</span>&#125;, &#123;index = <span class="hljs-number">15</span>, file = <span class="hljs-number">0x7ffff03e5280</span>&#125;, &#123;index = <span class="hljs-number">14</span>, <br>    file = <span class="hljs-number">0x7ffff03ed700</span>&#125;, &#123;index = <span class="hljs-number">50</span>, file = <span class="hljs-number">0x7fffe81506f0</span>&#125;, &#123;index = <span class="hljs-number">12</span>, file = <span class="hljs-number">0x7ffff0234580</span>&#125;, &#123;index = <span class="hljs-number">11</span>, file = <span class="hljs-number">0x7ffff05d87a0</span>&#125;, &#123;index = <span class="hljs-number">10</span>, file = <span class="hljs-number">0x7ffff05d8600</span>&#125;, &#123;index = <span class="hljs-number">9</span>, file = <span class="hljs-number">0x7ffff02c15a0</span>&#125;, <br>  &#123;index = <span class="hljs-number">8</span>, file = <span class="hljs-number">0x7ffff02c1400</span>&#125;, &#123;index = <span class="hljs-number">7</span>, file = <span class="hljs-number">0x7ffff0550e70</span>&#125;, &#123;index = <span class="hljs-number">6</span>, file = <span class="hljs-number">0x7ffff037eac0</span>&#125;, &#123;index = <span class="hljs-number">5</span>, file = <span class="hljs-number">0x7ffff038c690</span>&#125;, &#123;index = <span class="hljs-number">4</span>, file = <span class="hljs-number">0x7ffff05dd1d0</span>&#125;, &#123;index = <span class="hljs-number">3</span>, <br>    file = <span class="hljs-number">0x7ffff05314f0</span>&#125;, &#123;index = <span class="hljs-number">2</span>, file = <span class="hljs-number">0x7ffff02ee620</span>&#125;, &#123;index = <span class="hljs-number">0</span>, file = <span class="hljs-number">0x7ffff03e2740</span>&#125;, &#123;index = <span class="hljs-number">27</span>, file = <span class="hljs-number">0x7fffe81b5550</span>&#125;, &#123;index = <span class="hljs-number">51</span>, file = <span class="hljs-number">0x7fffe8150890</span>&#125;, &#123;index = <span class="hljs-number">49</span>, file = <span class="hljs-number">0x7fffe82b0750</span>&#125;, &#123;<br>    index = <span class="hljs-number">48</span>, file = <span class="hljs-number">0x7fffe82b05b0</span>&#125;, &#123;index = <span class="hljs-number">47</span>, file = <span class="hljs-number">0x7fffe82b0410</span>&#125;, &#123;index = <span class="hljs-number">46</span>, file = <span class="hljs-number">0x7fffe817f620</span>&#125;, &#123;index = <span class="hljs-number">45</span>, file = <span class="hljs-number">0x7fffe817f480</span>&#125;, &#123;index = <span class="hljs-number">44</span>, file = <span class="hljs-number">0x7fffe817f2e0</span>&#125;, &#123;index = <span class="hljs-number">43</span>, <br>    file = <span class="hljs-number">0x7fffe8305410</span>&#125;, &#123;index = <span class="hljs-number">42</span>, file = <span class="hljs-number">0x7fffe8305270</span>&#125;, &#123;index = <span class="hljs-number">41</span>, file = <span class="hljs-number">0x7fffe83050d0</span>&#125;, &#123;index = <span class="hljs-number">40</span>, file = <span class="hljs-number">0x7fffe8179f00</span>&#125;, &#123;index = <span class="hljs-number">39</span>, file = <span class="hljs-number">0x7fffe8179d60</span>&#125;, &#123;index = <span class="hljs-number">38</span>, <br>    file = <span class="hljs-number">0x7fffe8179bc0</span>&#125;, &#123;index = <span class="hljs-number">37</span>, file = <span class="hljs-number">0x7fffe81be560</span>&#125;, &#123;index = <span class="hljs-number">36</span>, file = <span class="hljs-number">0x7fffe81be3c0</span>&#125;, &#123;index = <span class="hljs-number">35</span>, file = <span class="hljs-number">0x7fffe81be220</span>&#125;, &#123;index = <span class="hljs-number">34</span>, file = <span class="hljs-number">0x7fffe848ed60</span>&#125;, &#123;index = <span class="hljs-number">33</span>, <br>    file = <span class="hljs-number">0x7fffe848ebc0</span>&#125;, &#123;index = <span class="hljs-number">32</span>, file = <span class="hljs-number">0x7fffe848ea20</span>&#125;, &#123;index = <span class="hljs-number">31</span>, file = <span class="hljs-number">0x7fffe8390940</span>&#125;, &#123;index = <span class="hljs-number">30</span>, file = <span class="hljs-number">0x7fffe83907a0</span>&#125;, &#123;index = <span class="hljs-number">29</span>, file = <span class="hljs-number">0x7fffe8390600</span>&#125;, &#123;index = <span class="hljs-number">28</span>, <br>    file = <span class="hljs-number">0x7fffe82780f0</span>&#125;, &#123;index = <span class="hljs-number">26</span>, file = <span class="hljs-number">0x7fffe82d95d0</span>&#125;&#125;<br></code></pre></td></tr></table></figure>
+
+
+<p>在C++中，当你使用标准库的排序功能（如 <code>std::sort</code>）或任何需要比较的数据结构（如 <code>std::set</code> 或 <code>std::map</code>）时，提供给这些功能的比较函数需要满足特定的性质。这些性质确保比较函数能够正确地指导排序或数据结构的行为。以下是比较函数需要满足的主要性质：</p>
+<h3 id="1-反射性"><a href="#1-反射性" class="headerlink" title="1. 反射性"></a>1. <strong>反射性</strong></h3><p>比较函数对于任何元素 <code>a</code>，必须返回 <code>false</code> 当作 <code>a &lt; a</code> 的判断：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs stylus">cpp<br>Copy <span class="hljs-selector-tag">code</span><br><span class="hljs-function"><span class="hljs-title">comp</span><span class="hljs-params">(a, a)</span></span> == false<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-反对称性"><a href="#2-反对称性" class="headerlink" title="2. 反对称性"></a>2. <strong>反对称性</strong></h3><p>对于任何元素 <code>a</code> 和 <code>b</code>，如果 <code>a &lt; b</code> 是 <code>true</code>，那么 <code>b &lt; a</code> 必须是 <code>false</code>：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs stylus">cpp<br>Copy <span class="hljs-selector-tag">code</span><br><span class="hljs-keyword">if</span> (<span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">a</span>, b) == true) then <span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">b</span>, a) must be false<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-传递性"><a href="#3-传递性" class="headerlink" title="3. 传递性"></a>3. <strong>传递性</strong></h3><p>对于任何元素 <code>a</code>、<code>b</code> 和 <code>c</code>，如果 <code>a &lt; b</code> 是 <code>true</code> 并且 <code>b &lt; c</code> 是 <code>true</code>，那么 <code>a &lt; c</code> 也必须是 <code>true</code>：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs stylus">cpp<br>Copy <span class="hljs-selector-tag">code</span><br><span class="hljs-keyword">if</span> (<span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">a</span>, b) == true &amp;&amp; <span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">b</span>, c) == true) then <span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">a</span>, c) must be true<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-强传递性"><a href="#4-强传递性" class="headerlink" title="4. 强传递性"></a>4. <strong>强传递性</strong></h3><p>除了上述的基本传递性之外，比较函数还应满足强传递性，这涉及到等价的情况。即如果 <code>a</code> 等于 <code>b</code>（在排序意义上，即 <code>!comp(a, b) &amp;&amp; !comp(b, a)</code>），并且 <code>b &lt; c</code>，则 <code>a &lt; c</code>：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs stylus">cpp<br>Copy <span class="hljs-selector-tag">code</span><br><span class="hljs-keyword">if</span> (!<span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">a</span>, b) &amp;&amp; !<span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">b</span>, a) &amp;&amp; <span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">b</span>, c)) then <span class="hljs-built_in">comp</span>(<span class="hljs-selector-tag">a</span>, c) must be true<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-总体性"><a href="#5-总体性" class="headerlink" title="5. 总体性"></a>5. <strong>总体性</strong></h3><p>对于任何两个元素 <code>a</code> 和 <code>b</code>，比较函数应该能返回一个确定的比较结果，即 <code>a &lt; b</code>、<code>b &lt; a</code> 或两者都不成立（认为它们等价），从而保证元素可以完全排序。</p>
+<h3 id="实现建议"><a href="#实现建议" class="headerlink" title="实现建议"></a>实现建议</h3><ul>
+<li>当定义一个比较函数时，确保它是 <strong>非成员函数</strong> 或者 <strong>静态成员函数</strong>，这样它就不会依赖于对象的状态。</li>
+<li>对于复杂类型的比较，考虑可能的边界情况和特殊值，如空值、极限大小等。</li>
+<li>在实现比较函数时，要特别小心处理浮点数的比较，避免因精度问题导致的错误排序。</li>
+</ul>
+<p>通过确保这些性质，你的比较函数可以安全地用于标准库中的排序和其他数据结构，保证它们的正确性和效率。</p>
+<p>在C++中，比较函数通常用于定义元素之间的排序关系。当使用比较函数（如 <code>cmp</code>）对元素 <code>f1</code> 和 <code>f2</code> 进行比较时，函数返回的 <code>true</code> 或 <code>false</code> 值具有特定的意义：</p>
+<ol>
+<li>**返回 <code>true</code>**：<ul>
+<li>这意味着在比较函数定义的排序规则下，第一个参数 <code>f1</code> 应该排在第二个参数 <code>f2</code> 之前。换句话说，根据定义的准则，<code>f1</code> 小于（或优先于）<code>f2</code>。这个返回值告诉排序算法或任何使用该比较函数的数据结构，<code>f1</code> 在排序顺序中应该出现在 <code>f2</code> 的前面。</li>
+</ul>
+</li>
+<li>**返回 <code>false</code>**：<ul>
+<li>这意味着根据比较函数的排序规则，<code>f1</code> 不应该排在 <code>f2</code> 之前。这并不一定意味着 <code>f1</code> 大于 <code>f2</code>，因为 <code>false</code> 的返回值还可能意味着 <code>f1</code> 和 <code>f2</code> 是等价的（在排序意义上相等）。所以，返回 <code>false</code> 可以被解释为 <code>f1</code> 大于或等于 <code>f2</code>，或者说 <code>f1</code> 不小于 <code>f2</code>。</li>
+</ul>
+</li>
+</ol>
+<h3 id="代码工作步骤"><a href="#代码工作步骤" class="headerlink" title="代码工作步骤"></a>代码工作步骤</h3><ol>
+<li>将lethe代码上传至github，并研究其compaction量</li>
+<li>观察zenfs的zone与文件level对应关系，统计垃圾回收相关信息</li>
+<li>模拟进行第四章实验</li>
+<li>数据布局与垃圾回收加入存活时间测试</li>
+<li>合并算法测试</li>
+</ol>
+<h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><h5 id="scatter-gather-I-O"><a href="#scatter-gather-I-O" class="headerlink" title="scatter&#x2F;gather I&#x2F;O"></a>scatter&#x2F;gather I&#x2F;O</h5><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Z_Stand/article/details/102249776">linux文件IO与内存映射：分散&#x2F;聚集IO技术(scatter-gather)</a></p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/10520182/linux-when-to-use-scatter-gather-io-readv-writev-vs-a-large-buffer-with-frea">Linux: When to use scatter&#x2F;gather IO (readv, writev) vs a large buffer with fread</a></p>
+<h5 id="画图工具："><a href="#画图工具：" class="headerlink" title="画图工具："></a>画图工具：</h5><p><a target="_blank" rel="noopener" href="https://www.drawio.com/">draw.io</a></p>
+<p>PPT</p>
+<p>visio</p>
+<p>word插入图片后变模糊</p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/378424275">插入Word的图片如何保持清晰度</a></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202311091609330.png" srcset="/img/loading.gif" lazyload alt="image-20231109160906171"></p>
+<h5 id="leveldb上运行YCSB工作负载"><a href="#leveldb上运行YCSB工作负载" class="headerlink" title="leveldb上运行YCSB工作负载"></a>leveldb上运行YCSB工作负载</h5><p>github仓库地址：<a target="_blank" rel="noopener" href="https://github.com/ls4154/YCSB-cpp">https://github.com/ls4154/YCSB-cpp</a></p>
+<p><strong>很好的解决思路</strong></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_25458977/article/details/111051474">使用memcpy()时报错</a></p>
+<blockquote>
+<p>可以试一下将memcpy()替换掉，自己写一个for循环进行拷贝，找到错误</p>
+</blockquote>
+<h5 id="vmware扩展分区"><a href="#vmware扩展分区" class="headerlink" title="vmware扩展分区"></a>vmware扩展分区</h5><p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202401221921203.png" srcset="/img/loading.gif" lazyload></p>
+<p>首先将未分配的空间放进大目录下（&#x2F;dev&#x2F;sda2)，而后再在&#x2F;dev&#x2F;sda5里resize</p>
+<p>内核查询函数：<a target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/latest/source">elixir.bootlin.com</a></p>
+<h3 id="工作步骤"><a href="#工作步骤" class="headerlink" title="工作步骤"></a>工作步骤</h3><ol>
+<li><p>结论</p>
+</li>
+<li><p>摘要</p>
+</li>
+<li><p>合并策略设计</p>
+</li>
+<li><p>写放大基本文本与性能测试基本文本</p>
+</li>
+<li><p>HZKV测试基本文本</p>
+</li>
+<li><p>定稿 图表修改  文字扩充 参考文献 页眉页脚</p>
+</li>
+<li><p>数据布局与垃圾回收代码编写</p>
+</li>
+<li><p>合并策略实现</p>
+</li>
+<li><p>zonekv调试 zenfs实现 HZKV实现</p>
+</li>
+</ol>
+<p>代码测试</p>
+<ol>
+<li>写放大测试</li>
+<li>性能测试</li>
+<li>f2fs基准测试</li>
+</ol>
+<h3 id="gpt"><a href="#gpt" class="headerlink" title="gpt"></a>gpt</h3><p>润色以下文本，使其更具学术性，语义更加通顺。你需要具有分区固态盘与日志合并树，计算机存储的相关知识。 整体的文字数不需要太大的改变，文字数为原先文字数的100%-110%最好，注意不用出现“我们”一词，以及一些比较口语化的词汇</p>
+<p>润色以下文本，使其更具学术性，语义更加通顺。你需要具有分区固态盘与日志合并树，计算机存储的相关知识。 整体的文字数不需要太大的改变，文字数为原先文字数的100%-110%最好，注意不用出现“我们”一词，以及一些比较口语化的词汇</p>
+<p>润色并扩充以下文本，使其更具学术性，语义更加通顺。你需要具有日志合并树，计算机存储的相关知识。</p>
+<p>润色以下文本，使其更具学术性，语义更加通顺。你需要具有分区固态盘与日志合并树，计算机存储的相关知识。 整体的文字数不需要太大的改变，文字数为原先文字数的100%-110%最好，注意不用出现“我们”一词，以及一些比较口语化的词汇，同时注意纠正语句中的错别字并在发现错别字后第一时间报告</p>
+<p>我现在正在编写论文的相关工作部分，现在需要介绍这篇论文，请用两三句话介绍它的主要工作，注意语言风格与论文的相关工作风格保持一致，突出主要工作而不是空泛的概念，用中文回答</p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202403021908635.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202403021908001.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="endnote"><a href="#endnote" class="headerlink" title="endnote"></a>endnote</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/269732849">Endnote GB&#x2F;T 7714-2015（numeric）格式文献插入与修改</a></p>
+<p>2015版本的style</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/kellyroslyn/article/details/113943394">EndNote导入文献出现带有大括号{}乱码的解决办法</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/357193419">参考文献不在最后一页，如何使用EndNote将参考文献统一放在参考文献那一章？</a></p>
+<p>其实不用那么麻烦，选择文末endnote生成的文献列表，直接拖拽到目标位置（注意这里必须拖拽，不要ctrl+x剪切，这样不会消除文献列表的域代码），你会发现此后更新的文献全部都在新位置而非文末</p>
+<p>git submodule sync</p>
+<p>不要过分依赖人工智能，对人工智能发脾气是没有任何意义的</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" class="category-chain-item">学习记录</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/ZNS-SSD-LevelDB/" class="print-no-link">#ZNS SSD  LevelDB</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/life/2023%E5%B9%B4%E7%BB%88%E6%80%BB%E7%BB%93.html" title="2023年终总结">
+                        <span class="hidden-mobile">2023年终总结</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"uU0wegCOTLXqtIgWmhAD3MFq-gzGzoHsz","appKey":"0e2MMh7ddBCGGytOe9UEy5NP","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":true,"recordIP":true,"serverURLs":"https://uu0wegco.lc-cn-n1-shared.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/z16.model.json"},"display":{"position":"right","width":200,"height":400},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>
