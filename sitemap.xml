@@ -4,7 +4,7 @@
   <url>
     <loc>https://www.jiasun.top/blog/ZNS%E4%B8%8ELevelDB%E7%9B%B8%E5%85%B3%E8%AE%B0%E5%BD%95.html</loc>
     
-    <lastmod>2024-05-22</lastmod>
+    <lastmod>2024-05-23</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -1354,7 +1354,14 @@
   </url>
   
   <url>
-    <loc>https://www.jiasun.top/tags/ZNS-SSD-LevelDB/</loc>
+    <loc>https://www.jiasun.top/tags/ZNS-SSD/</loc>
+    <lastmod>2024-05-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jiasun.top/tags/LevelDB/</loc>
     <lastmod>2024-05-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
