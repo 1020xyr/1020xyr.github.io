@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202311141703690.png">
 <meta property="article:published_time" content="2023-11-09T08:23:38.414Z">
-<meta property="article:modified_time" content="2024-01-05T07:01:01.191Z">
+<meta property="article:modified_time" content="2024-05-27T02:24:36.962Z">
 <meta property="article:author" content="最佳损友1020">
 <meta property="article:tag" content="zns ssd spdk leveldb env">
 <meta name="twitter:card" content="summary_large_image">
@@ -690,6 +690,9 @@
 <p>重点放在_schedule_thread函数中</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">static</span> <span class="hljs-type">void</span><br>_schedule_thread(<span class="hljs-type">void</span> *arg1, <span class="hljs-type">void</span> *arg2)<br>&#123;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spdk_lw_thread</span> *<span class="hljs-title">lw_thread</span> =</span> arg1;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spdk_thread</span> *<span class="hljs-title">thread</span>;</span><br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spdk_reactor</span> *<span class="hljs-title">reactor</span>;</span><br>	<span class="hljs-type">uint32_t</span> current_core;<br>	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">spdk_fd_group</span> *<span class="hljs-title">grp</span>;</span><br><br>	current_core = spdk_env_get_current_core();<br>	reactor = spdk_reactor_get(current_core);<br>	assert(reactor != <span class="hljs-literal">NULL</span>);<br><br>	<span class="hljs-comment">/* Update total_stats to reflect state of thread</span><br><span class="hljs-comment">	* at the end of the move. */</span><br>	thread = spdk_thread_get_from_ctx(lw_thread);<br>	spdk_set_thread(thread);<br>	spdk_thread_get_stats(&amp;lw_thread-&gt;total_stats);<br>	spdk_set_thread(<span class="hljs-literal">NULL</span>);<br><br>	lw_thread-&gt;lcore = current_core;<br><br>	TAILQ_INSERT_TAIL(&amp;reactor-&gt;threads, lw_thread, link);	<span class="hljs-comment">// 插入reactor对应的thread列表</span><br>	reactor-&gt;thread_count++;<br>&#125;<br></code></pre></td></tr></table></figure>
 
+
+
+<p>3 TestKV</p>
 
                 
               </div>
