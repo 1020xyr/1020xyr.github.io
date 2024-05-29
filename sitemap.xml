@@ -2,15 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://www.jiasun.top/life/2024%E6%B8%B8%E8%AE%B0.html</loc>
-    
-    <lastmod>2024-05-29</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://www.jiasun.top/continue/zns-spdk-env.html</loc>
     
     <lastmod>2024-05-27</lastmod>
@@ -1371,13 +1362,6 @@
   
   <url>
     <loc>https://www.jiasun.top/tags/LevelDB/</loc>
-    <lastmod>2024-05-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.jiasun.top/tags/%E6%97%85%E6%B8%B8%E8%AE%B0%E5%BD%95/</loc>
     <lastmod>2024-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
