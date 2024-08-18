@@ -1,0 +1,772 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/nano-1.jpg">
+  <link rel="icon" href="/img/nano-1.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="最佳损友1020">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="实验程序首先看以下的demo程序，由recv唤醒时机中的程序简单改改而来，本篇博客主要探究一个问题，当父子进程同时监听server_sockfd，当客户端请求到达时，操作系统会把请求分配给哪个进程？ 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535">
+<meta property="og:type" content="article">
+<meta property="og:title" content="父子进程监听套接字实验">
+<meta property="og:url" content="https://www.jiasun.top/blog/%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B%E7%9B%91%E5%90%AC%E5%A5%97%E6%8E%A5%E5%AD%97%E5%AE%9E%E9%AA%8C.html">
+<meta property="og:site_name" content="最佳损友1020’s Blog">
+<meta property="og:description" content="实验程序首先看以下的demo程序，由recv唤醒时机中的程序简单改改而来，本篇博客主要探究一个问题，当父子进程同时监听server_sockfd，当客户端请求到达时，操作系统会把请求分配给哪个进程？ 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202408172046483.png">
+<meta property="article:published_time" content="2024-08-18T02:00:22.681Z">
+<meta property="article:modified_time" content="2024-08-18T01:59:57.677Z">
+<meta property="article:author" content="最佳损友1020">
+<meta property="article:tag" content="网络 套接字">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202408172046483.png">
+  
+  
+  
+  <title>父子进程监听套接字实验 - 最佳损友1020’s Blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+  
+<link rel="stylesheet" href="/css/csdn.css">
+<link rel="stylesheet" href="/css/top.css">
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"www.jiasun.top","root":"/","version":"1.9.5-a","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":4},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"n227FxNJCTncCeI3DrGx7MnC-gzGzoHsz","app_key":"ljkRZDiTtVmjn5mpaQmpFqgv","server_url":"https://n227fxnj.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>最佳损友1020</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg.webp') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="父子进程监听套接字实验"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-08-18 10:00" pubdate>
+          2024年8月18日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">父子进程监听套接字实验</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+<h3 id="实验程序"><a href="#实验程序" class="headerlink" title="实验程序"></a>实验程序</h3><p>首先看以下的demo程序，由<a href="https://www.jiasun.top/blog/recv%E5%94%A4%E9%86%92%E6%97%B6%E6%9C%BA.html">recv唤醒时机</a>中的程序简单改改而来，本篇博客主要探究一个问题，当父子进程同时监听server_sockfd，当客户端请求到达时，操作系统会把请求分配给哪个进程？</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// server.c</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdlib.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/types.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/socket.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;netinet/in.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;arpa/inet.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;fcntl.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;unistd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;netinet/tcp.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;netdb.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;errno.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *argv[])</span> &#123;<br>  <span class="hljs-type">int</span> server_sockfd;               <span class="hljs-comment">// 服务端套接字</span><br>  <span class="hljs-type">int</span> client_sockfd;               <span class="hljs-comment">// 客户端套接字</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sockaddr_in</span> <span class="hljs-title">my_add</span>;</span>       <span class="hljs-comment">// 服务器网络地址结构体</span><br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sockaddr_in</span> <span class="hljs-title">remote_addr</span>;</span>  <span class="hljs-comment">// 客户端网络地址结构体</span><br>  <span class="hljs-type">socklen_t</span> sin_size;<br>  <span class="hljs-built_in">memset</span>(&amp;my_add, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(my_add));   <span class="hljs-comment">// 数据初始化--清零</span><br>  my_add.sin_family = AF_INET;          <span class="hljs-comment">// 设置为IP通信</span><br>  my_add.sin_addr.s_addr = INADDR_ANY;  <span class="hljs-comment">// 服务器IP地址--允许连接到所有本地地址上</span><br>  my_add.sin_port = htons(<span class="hljs-number">8000</span>);        <span class="hljs-comment">// 服务器端口号</span><br><br>  <span class="hljs-comment">// 创建服务器端套接字--IPV4协议 ，面向连接通信，TCP协议</span><br>  <span class="hljs-keyword">if</span> ((server_sockfd = socket(PF_INET, SOCK_STREAM, <span class="hljs-number">0</span>)) &lt; <span class="hljs-number">0</span>) &#123;<br>    perror(<span class="hljs-string">&quot;socket&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// 将套接字绑定到服务器的网络地址上</span><br>  <span class="hljs-keyword">if</span> (bind(server_sockfd, (<span class="hljs-keyword">struct</span> sockaddr *)&amp;my_add, <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> sockaddr)) &lt; <span class="hljs-number">0</span>) &#123;<br>    perror(<span class="hljs-string">&quot;bind&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// 监听连接请求--监听队列长度为1000，避免出现其他问题</span><br>  listen(server_sockfd, <span class="hljs-number">1000</span>);<br>  sin_size = <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> sockaddr_in);<br><br>  <span class="hljs-type">pid_t</span> pid = fork();<br>  <span class="hljs-keyword">if</span> (pid == <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-type">int</span> cnt = <span class="hljs-number">0</span>;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Child process started, PID: %d\n&quot;</span>, getpid());<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>      <span class="hljs-keyword">if</span> ((client_sockfd = accept(server_sockfd, (<span class="hljs-keyword">struct</span> sockaddr *)&amp;remote_addr, &amp;sin_size)) &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;accept&quot;</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>      &#125;<br>      cnt++;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;child accept client %s  %d times\n&quot;</span>, inet_ntoa(remote_addr.sin_addr), cnt);<br>      <span class="hljs-type">char</span> buf[<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">20</span>];<br>      <span class="hljs-type">int</span> recv_cnt;<br>      <span class="hljs-type">int</span> send_cnt;<br>      <span class="hljs-keyword">while</span> ((recv_cnt = recv(client_sockfd, buf, <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">20</span>, <span class="hljs-number">0</span>)) &gt; <span class="hljs-number">0</span>) &#123;<br>        send_cnt = send(client_sockfd, buf, recv_cnt, <span class="hljs-number">0</span>);<br>        <span class="hljs-keyword">if</span> (send_cnt &lt; <span class="hljs-number">0</span>) &#123;<br>          perror(<span class="hljs-string">&quot;write failed&quot;</span>);<br>          <span class="hljs-keyword">break</span>;<br>        &#125;<br>      &#125;<br>      close(client_sockfd);<br>    &#125;<br><br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (pid &gt; <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-type">int</span> cnt = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) &#123;<br>      <span class="hljs-keyword">if</span> ((client_sockfd = accept(server_sockfd, (<span class="hljs-keyword">struct</span> sockaddr *)&amp;remote_addr, &amp;sin_size)) &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;accept&quot;</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>      &#125;<br>      cnt++;<br>      <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;parent accept client %s  %d times\n&quot;</span>, inet_ntoa(remote_addr.sin_addr), cnt);<br>      <span class="hljs-type">char</span> buf[<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">20</span>];<br>      <span class="hljs-type">int</span> recv_cnt;<br>      <span class="hljs-type">int</span> send_cnt;<br>      <span class="hljs-keyword">while</span> ((recv_cnt = recv(client_sockfd, buf, <span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">20</span>, <span class="hljs-number">0</span>)) &gt; <span class="hljs-number">0</span>) &#123;<br>        send_cnt = send(client_sockfd, buf, recv_cnt, <span class="hljs-number">0</span>);<br>        <span class="hljs-keyword">if</span> (send_cnt &lt; <span class="hljs-number">0</span>) &#123;<br>          perror(<span class="hljs-string">&quot;write failed&quot;</span>);<br>          <span class="hljs-keyword">break</span>;<br>        &#125;<br>      &#125;<br>      close(client_sockfd);<br>    &#125;<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;Fork() failed.\n&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>  &#125;<br>  close(server_sockfd);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// client.c</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdlib.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/types.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;sys/socket.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;netinet/in.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;arpa/inet.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;fcntl.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;unistd.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;netinet/tcp.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;netdb.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;thread&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;vector&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br>using namespace <span class="hljs-built_in">std</span>;<br><br><span class="hljs-type">int</span> failed_num = <span class="hljs-number">0</span>;<br><span class="hljs-type">int</span> <span class="hljs-title function_">client_func</span><span class="hljs-params">()</span> &#123;<br>  <span class="hljs-type">int</span> client_sockfd;<br>  <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sockaddr_in</span> <span class="hljs-title">remota_addr</span>;</span>                <span class="hljs-comment">// 服务器端网络地址结构体</span><br>  <span class="hljs-built_in">memset</span>(&amp;remota_addr, <span class="hljs-number">0</span>, <span class="hljs-keyword">sizeof</span>(remota_addr));  <span class="hljs-comment">// 数据初始化--清零</span><br>  remota_addr.sin_family = AF_INET;              <span class="hljs-comment">// 设置为IPV4通信</span><br>  remota_addr.sin_addr.s_addr = inet_addr(<span class="hljs-string">&quot;127.0.0.1&quot;</span>);<br>  remota_addr.sin_port = htons(<span class="hljs-number">8000</span>);  <span class="hljs-comment">// 服务器端口号</span><br>  <span class="hljs-comment">// 创建客户端套接字--Ipv4协议，面向连接通信，TCP协议</span><br>  <span class="hljs-comment">// 成功，返回0 ，失败返回-1</span><br>  <span class="hljs-keyword">if</span> ((client_sockfd = socket(PF_INET, SOCK_STREAM, <span class="hljs-number">0</span>)) &lt; <span class="hljs-number">0</span>) &#123;<br>    perror(<span class="hljs-string">&quot;socket&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// 将套接字绑定到服务器的网络地址上</span><br>  <span class="hljs-keyword">if</span> (connect(client_sockfd, (<span class="hljs-keyword">struct</span> sockaddr *)&amp;remota_addr, <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> sockaddr)) &lt; <span class="hljs-number">0</span>) &#123;<br>    perror(<span class="hljs-string">&quot;connect&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>  &#125;<br><br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;connect to server\n&quot;</span>);<br><br>  <span class="hljs-type">char</span> send_buf[<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">20</span>];<br>  <span class="hljs-type">char</span> recv_buf[<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">20</span>];<br>  <span class="hljs-type">int</span> test_size = (<span class="hljs-number">1</span> &lt;&lt; <span class="hljs-number">19</span>);<br>  <span class="hljs-type">int</span> test_times = <span class="hljs-number">10</span>;<br>  <span class="hljs-type">int</span> cnt;<br><br>  srand(time(<span class="hljs-literal">NULL</span>));<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; test_times; i++) &#123;<br>    cnt = send(client_sockfd, send_buf, test_size, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span> (cnt &lt; <span class="hljs-number">0</span>) &#123;<br>      perror(<span class="hljs-string">&quot;send failed&quot;</span>);<br>      failed_num++;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    cnt = recv(client_sockfd, recv_buf, test_size, <span class="hljs-number">0</span>);<br>    <span class="hljs-keyword">if</span> (cnt &lt; <span class="hljs-number">0</span>) &#123;<br>      perror(<span class="hljs-string">&quot;recv failed&quot;</span>);<br>      failed_num++;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">while</span> (cnt != test_size) &#123;<br>      <span class="hljs-type">int</span> curr_cnt = recv(client_sockfd, recv_buf + cnt, test_size - cnt, <span class="hljs-number">0</span>);<br>      <span class="hljs-keyword">if</span> (curr_cnt &lt; <span class="hljs-number">0</span>) &#123;<br>        perror(<span class="hljs-string">&quot;recv failed&quot;</span>);<br>        failed_num++;<br>        <span class="hljs-keyword">break</span>;<br>      &#125;<br>      cnt += curr_cnt;<br>    &#125;<br>  &#125;<br>  close(client_sockfd);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">const</span> <span class="hljs-type">char</span> *argv[])</span> &#123;<br>  <span class="hljs-built_in">vector</span>&lt;thread&gt; threads;<br>  <span class="hljs-type">int</span> thread_num = <span class="hljs-number">1000</span>;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; thread_num; i++) &#123;<br>    threads.emplace_back(client_func);<br>  &#125;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; thread_num; i++) &#123;<br>    threads[i].join();<br>  &#125;<br>  <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;client test complete, failed num:%d\n&quot;</span>, failed_num);<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>执行server程序，查看当前监听8000端口的进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash">root@ubuntu ~/c/fork_tcp_test [SIGINT]<span class="hljs-comment"># ./server</span><br>Child process started, PID: 4239<br><br><br>root@ubuntu ~/c/fork_tcp_test<span class="hljs-comment"># lsof -i:8000</span><br>COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME<br>server  4238 root    3u  IPv4  71161      0t0  TCP *:8000 (LISTEN)<br>server  4239 root    3u  IPv4  71161      0t0  TCP *:8000 (LISTEN)<br></code></pre></td></tr></table></figure>
+
+<p>证明父子进程是可以同时监听一个套接字的</p>
+<p>运行client程序，向server发送数据报文</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># client输出</span><br>connect to server<br>connect to server<br>connect to server<br>connect to server<br>connect to server<br>connect to server<br>client <span class="hljs-built_in">test</span> complete, failed num:0<br><br><span class="hljs-comment"># server输出</span><br>parent accept client 127.0.0.1  466 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  522 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  523 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  524 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  525 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  526 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  527 <span class="hljs-built_in">times</span><br>parent accept client 127.0.0.1  467 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  528 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  529 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  530 <span class="hljs-built_in">times</span><br>child accept client 127.0.0.1  531 <span class="hljs-built_in">times</span><br>parent accept client 127.0.0.1  468 <span class="hljs-built_in">times</span><br>parent accept client 127.0.0.1  469 <span class="hljs-built_in">times</span><br></code></pre></td></tr></table></figure>
+
+<p>父进程接收了469次客户端请求，子进程接收了531次客户端请求，表明操作系统分配请求要么是轮询，要么是随机，目的是让两个进程同等地处理到达的客户端请求。</p>
+<h3 id="探究经历"><a href="#探究经历" class="headerlink" title="探究经历"></a>探究经历</h3><p>操作系统收包线程   父进程 子进程</p>
+<h4 id="accept系统调用"><a href="#accept系统调用" class="headerlink" title="accept系统调用"></a>accept系统调用</h4><p>先从sys_accept实现入手，找到请求队列，再找到对这个队列入队操作的相关代码，最终找到轮询机制</p>
+<p>1 首先阅读《Linux内核源代码情景分析》的函数sys_accept()——接受连接请求一节，大致了解accept系统调用流程</p>
+<p>2 阅读内核源码，找到可能的请求队列</p>
+<p><a target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v5.10.223/source/net/socket.c#L1832">socket.c - net&#x2F;socket.c - Linux source code v5.10.223 - Bootlin</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs c">SYSCALL_DEFINE3(accept, <span class="hljs-type">int</span>, fd, <span class="hljs-keyword">struct</span> sockaddr __user *, upeer_sockaddr,<br>		<span class="hljs-type">int</span> __user *, upeer_addrlen)<br>&#123;<br>	<span class="hljs-keyword">return</span> __sys_accept4(fd, upeer_sockaddr, upeer_addrlen, <span class="hljs-number">0</span>);<br>&#125;<br>__sys_accept4<br>   __sys_accept4_file<br>    	do_accept<br>    		sock-&gt;ops-&gt;accept<br>    			inet_accept  <span class="hljs-comment">// 通过搜索proto_ops成员找到</span><br>    				READ_ONCE(sk1-&gt;sk_prot)-&gt;accept<br>    					inet_csk_accept  <span class="hljs-comment">// 通过相关博客找到</span><br>    							<span class="hljs-comment">// 猜测icsk_accept_queue就是要找的请求队列</span><br>    							<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">inet_connection_sock</span> *<span class="hljs-title">icsk</span> =</span> inet_csk(sk);<br>								<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">request_sock_queue</span> *<span class="hljs-title">queue</span> =</span> &amp;icsk-&gt;icsk_accept_queue;<br></code></pre></td></tr></table></figure>
+
+<p>相关博客：<a target="_blank" rel="noopener" href="https://blog.csdn.net/wangquan1992/article/details/108881151">linux内核协议栈 accept 系统调用</a></p>
+<h4 id="收包线程"><a href="#收包线程" class="headerlink" title="收包线程"></a>收包线程</h4><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_40378034/article/details/132914498">深入理解Linux网络笔记（一）：内核是如何接收网络包的</a></p>
+<h4 id="SO-REUSEPORT"><a href="#SO-REUSEPORT" class="headerlink" title="SO_REUSEPORT"></a>SO_REUSEPORT</h4><p><a target="_blank" rel="noopener" href="https://helight.cn/blog/2022/linux-tcp-so-reuseport/">【译】使用 SO_REUSEPORT 套接字选项提升服务性能</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" class="category-chain-item">学习记录</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%BD%91%E7%BB%9C-%E5%A5%97%E6%8E%A5%E5%AD%97/" class="print-no-link">#网络 套接字</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/life/2024%E6%B8%B8%E8%AE%B0.html" title="2024游记">
+                        <span class="hidden-mobile">2024游记</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"uU0wegCOTLXqtIgWmhAD3MFq-gzGzoHsz","appKey":"0e2MMh7ddBCGGytOe9UEy5NP","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":true,"recordIP":true,"serverURLs":"https://uu0wegco.lc-cn-n1-shared.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":{"jsonPath":"/live2dw/assets/z16.model.json"},"display":{"position":"right","width":200,"height":400},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>
