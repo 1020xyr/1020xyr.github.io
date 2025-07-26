@@ -271,6 +271,70 @@
   <div class="row mx-auto index-card">
     
     
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
+          <img src="https://img-blog.csdnimg.cn/225b8979d7624d13a5645fa144894e8f.jpeg" srcset="/img/loading.gif" lazyload alt="NVMe驱动 请求路径学习记录">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
+          NVMe驱动 请求路径学习记录
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
+        <div>
+          由《深入浅出SSD》 6.5节trace分析可知，主机读请求的执行流程如下：  主机准备好命令放在SQ 主机通过写SQ的Tail DB，通知SSD来取命令（Memory Write TLP） SSD收到通知，去主机端的SQ取指令（Memory Read TLP） SSD执行命令，把数据传给主机（Memory Write TLP） SSD往主机的CQ中返回状态 SSD采用中断的方式告诉主机去处
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-05-25 21:05" pubdate>
+              2022-05-25
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/" class="category-chain-item">内核驱动开发记录</a>
+  
+  
+
+      </span>
+    
+  
+    
+  
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
@@ -734,60 +798,6 @@
             <i class="iconfont icon-date"></i>
             <time datetime="2022-04-18 10:21" pubdate>
               2022-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95/" class="category-chain-item">内核驱动开发记录</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97%E7%BC%96%E8%AF%91%E8%AE%B0%E5%BD%95.html" target="_blank">
-          内核模块编译记录
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97%E7%BC%96%E8%AF%91%E8%AE%B0%E5%BD%95.html" target="_blank">
-        <div>
-          1 基本的模块编译问题 12345obj-m+=hello.o # 与源文件一致all:        make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modulesclean:        make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) clean 在vscode终
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2022-04-14 16:32" pubdate>
-              2022-04-14
             </time>
           </div>
         
