@@ -1,0 +1,20 @@
+/*
+ * 自定义 AI 机器人图标
+ * 使用 SVG + CSS mask 实现，自动跟随主题色（亮色/暗色模式）
+ */
+
+.icon-robot {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4' y='9' width='16' height='11' rx='2' fill='none' stroke='black' stroke-width='2'/%3E%3Ccircle cx='9' cy='14' r='1.5' fill='black'/%3E%3Ccircle cx='15' cy='14' r='1.5' fill='black'/%3E%3Cpath d='M12 2v4' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='2' r='1.5' fill='black'/%3E%3Cpath d='M2 13v4M22 13v4' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M9 18h6' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4' y='9' width='16' height='11' rx='2' fill='none' stroke='black' stroke-width='2'/%3E%3Ccircle cx='9' cy='14' r='1.5' fill='black'/%3E%3Ccircle cx='15' cy='14' r='1.5' fill='black'/%3E%3Cpath d='M12 2v4' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='2' r='1.5' fill='black'/%3E%3Cpath d='M2 13v4M22 13v4' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M9 18h6' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
