@@ -16,16 +16,16 @@
   <meta name="author" content="最佳损友1020">
   <meta name="keywords" content="">
   
-    <meta name="description" content="漫谈&#x2F;随笔AI工作流 问题、需求——人——AI——代码的关系是什么？ 如何对抗模型幻觉 如何描述需求 哪些需求是我们未能说出来的 需求与具体实现之间的差距 我们的判断是否一定对 如何让AI成为一个可靠的评审者、讨论者而不仅仅是附和 AI的讨好倾向  当我们在让AI生成测试代码时，我们想要测什么？ 持续地工作流优化、反馈、迭代 持续地提升自身能力 模型的上限在哪 通用的实现与特化的实现">
+    <meta name="description" content="漫谈&#x2F;随笔 随便打打字  AI工作流 问题、需求——人——AI——代码的关系是什么？ 如何对抗模型幻觉 如何描述需求 哪些需求是我们未能说出来的 需求与具体实现之间的差距 我们的判断是否一定对 如何让AI成为一个可靠的评审者、讨论者而不仅仅是附和 AI的讨好倾向  当我们在让AI生成测试代码时，我们想要测什么？ 持续地工作流优化、反馈、迭代 持续地提升自身能力 模型的上限在哪 通用的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ai的奇幻漂流（持续更新）">
 <meta property="og:url" content="https://www.jiasun.top/blog/ai%E7%9A%84%E5%A5%87%E5%B9%BB%E6%BC%82%E6%B5%81.html">
 <meta property="og:site_name" content="最佳损友1020’s Blog">
-<meta property="og:description" content="漫谈&#x2F;随笔AI工作流 问题、需求——人——AI——代码的关系是什么？ 如何对抗模型幻觉 如何描述需求 哪些需求是我们未能说出来的 需求与具体实现之间的差距 我们的判断是否一定对 如何让AI成为一个可靠的评审者、讨论者而不仅仅是附和 AI的讨好倾向  当我们在让AI生成测试代码时，我们想要测什么？ 持续地工作流优化、反馈、迭代 持续地提升自身能力 模型的上限在哪 通用的实现与特化的实现">
+<meta property="og:description" content="漫谈&#x2F;随笔 随便打打字  AI工作流 问题、需求——人——AI——代码的关系是什么？ 如何对抗模型幻觉 如何描述需求 哪些需求是我们未能说出来的 需求与具体实现之间的差距 我们的判断是否一定对 如何让AI成为一个可靠的评审者、讨论者而不仅仅是附和 AI的讨好倾向  当我们在让AI生成测试代码时，我们想要测什么？ 持续地工作流优化、反馈、迭代 持续地提升自身能力 模型的上限在哪 通用的">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/p2925731882.jpg">
 <meta property="article:published_time" content="2026-01-25T15:33:15.000Z">
-<meta property="article:modified_time" content="2026-06-20T03:30:55.922Z">
+<meta property="article:modified_time" content="2026-06-20T08:31:29.779Z">
 <meta property="article:author" content="最佳损友1020">
 <meta property="article:tag" content="ai">
 <meta name="twitter:card" content="summary_large_image">
@@ -332,7 +332,10 @@
                 
                 <meta name="referrer" content="no-referrer" />
 
-<h1 id="漫谈-随笔"><a href="#漫谈-随笔" class="headerlink" title="漫谈&#x2F;随笔"></a>漫谈&#x2F;随笔</h1><p>AI工作流</p>
+<h1 id="漫谈-随笔"><a href="#漫谈-随笔" class="headerlink" title="漫谈&#x2F;随笔"></a>漫谈&#x2F;随笔</h1><blockquote>
+<p>随便打打字</p>
+</blockquote>
+<p>AI工作流</p>
 <p>问题、需求——人——AI——代码的关系是什么？</p>
 <p>如何对抗模型幻觉</p>
 <p>如何描述需求</p>
@@ -351,7 +354,7 @@
 <p>我们如何才能对写出代码有掌控力</p>
 <p>自然语言真的能成为下一代编程语言吗？ 它是否完备，是否存在二义性，如何能让不同模型在相同语言下得到一致的结果，追求生成物的稳定性是否是一种偏执</p>
 <p>以上这些我们都不会讨论(๑<em>◡</em>๑)</p>
-<h2 id="AI工作流-AI协作方法"><a href="#AI工作流-AI协作方法" class="headerlink" title="AI工作流&#x2F;AI协作方法"></a>AI工作流&#x2F;AI协作方法</h2><blockquote>
+<h1 id="AI工作流-AI协作方法"><a href="#AI工作流-AI协作方法" class="headerlink" title="AI工作流&#x2F;AI协作方法"></a>AI工作流&#x2F;AI协作方法</h1><blockquote>
 <p>上班的时候挂着这篇博客提醒自己</p>
 </blockquote>
 <p><strong>欲速则不达</strong></p>
@@ -363,21 +366,45 @@
 <p>TODO：</p>
 <p>openclaw、claude code、hermes agent、codex、opus&#x2F;gpt模型订阅</p>
 <p>多尝试、多用用CLI、mac快捷键、少用鼠标、提升效率</p>
+<p>原来vscode已经有claude code插件了，之前听说过，但一直没用</p>
 <p><strong>强迫症</strong></p>
 <p>功能开发工作流</p>
 <p>需求澄清-prd</p>
 <p>技术方案-spec</p>
+<p>spec评审</p>
 <p>测试先行</p>
 <p>实施计划</p>
 <p>代码生成</p>
 <p>代码评审</p>
-<h1 id="驾驭猜字机器"><a href="#驾驭猜字机器" class="headerlink" title="驾驭猜字机器"></a>驾驭猜字机器</h1><p>从不确定性到确定性</p>
+<p>代码人工评审</p>
+<h1 id="驾驭猜字机器"><a href="#驾驭猜字机器" class="headerlink" title="驾驭猜字机器"></a>驾驭猜字机器</h1><blockquote>
+<p>AI水文系列</p>
+</blockquote>
+<p>从不确定性到确定性</p>
 <p>系统提示词</p>
 <p>工具使用</p>
 <p>agent loop</p>
-<h1 id="色盲-色弱网页"><a href="#色盲-色弱网页" class="headerlink" title="色盲&#x2F;色弱网页"></a>色盲&#x2F;色弱网页</h1><p>我和更年期大妈不得不说的二三事：</p>
+<h1 id="色盲-色弱网站"><a href="#色盲-色弱网站" class="headerlink" title="色盲&#x2F;色弱网站"></a>色盲&#x2F;色弱网站</h1><blockquote>
+<p>我和更年期大妈不得不说的二三事</p>
+</blockquote>
 <p>奇怪的色盲色弱诊断方法</p>
-<h1 id="之前的部分"><a href="#之前的部分" class="headerlink" title="之前的部分"></a>之前的部分</h1><p>在大学的时候，我一直对机器学习、人工智能之类的课程不怎么喜欢。一部分原因是授课老师讲的过于无聊，更重要的原因是ai存在明显的不确定性。当执行一段C语言代码时，再怎么样程序的功能都是可被理解的，你对于一行代码执行后会有什么样的表现拥有基本的预期，尽管存在多线程、内核抢占、编译优化、CPU乱序发射，底层硬件故障等一些不确定性，但你对它们的存在也是了解的，至少可以假装认为自己了解。但ai的执行结果就完全是个谜了，机器学习中的一系列参数的含义完全未知，为什么这个参数比较好，那个参数比较差，本身就很难彻底说明白，因此当时我们都叫搞ai的叫太白金星，整天炼丹调参。</p>
+<h1 id="未来生活指南"><a href="#未来生活指南" class="headerlink" title="未来生活指南"></a>未来生活指南</h1><blockquote>
+<p>看一看前沿领域、相关领域的知识， 不炒股￣へ￣</p>
+</blockquote>
+<p>具身智能</p>
+<p>世界模型</p>
+<p>脑机接口</p>
+<p>大模型到底咋训练，咋推理的？ 我要新创建一个模型，我应该怎么做？</p>
+<p>AI相关花里胡哨的名词是啥意思</p>
+<p>存储、计算、网络三大件又有什么新活</p>
+<p>harness之后有没有啥新范式</p>
+<h1 id="人文关怀"><a href="#人文关怀" class="headerlink" title="人文关怀"></a>人文关怀</h1><blockquote>
+<p>不知道写点啥，但应该有，推荐阅读置身钉内</p>
+</blockquote>
+<h1 id="之前的部分"><a href="#之前的部分" class="headerlink" title="之前的部分"></a>之前的部分</h1><blockquote>
+<p>之前还是用古法思路写博客，但被ai击垮了，起承转合、逻辑闭环、循序渐进的范式太累了，还是写点随笔吧</p>
+</blockquote>
+<p>在大学的时候，我一直对机器学习、人工智能之类的课程不怎么喜欢。一部分原因是授课老师讲的过于无聊，更重要的原因是ai存在明显的不确定性。当执行一段C语言代码时，再怎么样程序的功能都是可被理解的，你对于一行代码执行后会有什么样的表现拥有基本的预期，尽管存在多线程、内核抢占、编译优化、CPU乱序发射，底层硬件故障等一些不确定性，但你对它们的存在也是了解的，至少可以假装认为自己了解。但ai的执行结果就完全是个谜了，机器学习中的一系列参数的含义完全未知，为什么这个参数比较好，那个参数比较差，本身就很难彻底说明白，因此当时我们都叫搞ai的叫太白金星，整天炼丹调参。</p>
 <p>​		之前的程序都是从原理上，从逻辑上，从结构上仔细地拆分，解决问题；但ai看起来是直接从结果上来解决问题。从一个强大的模型、神经网络开始，尝试解决这个问题并计算结果的准确程度，然后一直往更加准确的方向前进。但这种方式的问题是：即使ai对一个问题的准确度一直是100%，也无法确保下一次同类型问题同样正确，虽然非ai方法也不一定真的能保证完全正确，但由于对“底层原理”的偏执， 我还是更加喜欢非ai的范式，猜字谜”的行为模式本身并不能说服我。</p>
 <p>​		但在2026年的这个时刻，不得不承认的事实就是：ai一定会改变世界！之前使用chatgpt、qwen等一些对话模型时，虽然能感觉到ai很强大，但没有那种惊叹的感觉（我好像非常喜欢用感觉这两个字）。直到我使用cursor生成前后端页面，我本来只是随便写一个简短的提示词试一试，后续再研究研究如何修改，毕竟在大学的时候我还是用过一段时间的vue，没想到它生成代码后就能执行运行，而且结果完全符合我的预期，这个时刻我就知道，我过几年就要被ai取代掉了，至少过几年后，我就完全不需要自己写代码了，是不是所有人到头来都是提示词工程师？最近的几个月， 我已经不怎么自己写代码了， 都是让ai生成后直接用（实际上没怎么review），这也带来很大的不确定性，但目前看起来没出什么问题，所以整个系统就是建立在不确定性之上的？ 我从之前的如何写好一段代码变成了如何写好一段提示词，希望我后面能学会如何review一段ai代码，完全放飞也不太好(#^.^#)</p>
 <p>​	</p>
