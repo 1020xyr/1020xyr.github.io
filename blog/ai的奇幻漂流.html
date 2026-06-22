@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/p2925731882.jpg">
 <meta property="article:published_time" content="2026-01-25T15:33:15.000Z">
-<meta property="article:modified_time" content="2026-06-20T09:23:31.000Z">
+<meta property="article:modified_time" content="2026-06-22T15:00:31.000Z">
 <meta property="article:author" content="最佳损友1020">
 <meta property="article:tag" content="ai">
 <meta name="twitter:card" content="summary_large_image">
@@ -322,7 +322,7 @@
               <p class="note note-info">
                 
                   
-                    本文最后更新于：1 天前
+                    本文最后更新于：1 分钟前
                   
                 
               </p>
@@ -358,7 +358,7 @@
 <p>我们如何才能对写出代码有掌控力</p>
 <p>自然语言真的能成为下一代编程语言吗？ 它是否完备，是否存在二义性，如何能让不同模型在相同语言下得到一致的结果，追求生成物的稳定性是否是一种偏执</p>
 <p>以上这些我们都不会讨论(๑<em>◡</em>๑)</p>
-<h1 id="AI工作流-AI协作方法"><a href="#AI工作流-AI协作方法" class="headerlink" title="AI工作流&#x2F;AI协作方法"></a>AI工作流&#x2F;AI协作方法</h1><blockquote>
+<h1 id="AI工作流-AI协作方法——偷懒是行不通的"><a href="#AI工作流-AI协作方法——偷懒是行不通的" class="headerlink" title="AI工作流&#x2F;AI协作方法——偷懒是行不通的"></a>AI工作流&#x2F;AI协作方法——偷懒是行不通的</h1><blockquote>
 <p>上班的时候挂着这篇博客提醒自己</p>
 </blockquote>
 <p><strong>欲速则不达</strong></p>
@@ -413,8 +413,23 @@
 <li><p>问题的解决</p>
 </li>
 </ol>
+<p>一些常见的问题与思路</p>
+<ol>
+<li>在把基本的工作流框架、各个场景的skills组合确定下来后，自然而然会遇到一系列的问题。这个时候可以让AI来发散一下，思考如何解决这些问题，同时沉淀到工作流中，避免后续再犯。同时，逐渐找到哪些问题一直在犯，但AI一直解决不了，这个时候就需要在这个阶段进行人工卡点，人来进行判断</li>
+<li>最理想的情况就是一个工作流刚开始执行前把背景、需求全部说完，然后AI转几圈，结果全部正确，但这是不可能的。中间一定需要人工介入，例如spec与具体实现完全不是一一对应的关系，当你真实看到代码时才会发现“哦，原来我之前忘说了，我更想要那样的实现”。</li>
+<li>AI测试没有太多的价值，AI生成代码，跑单元测试都是全PASS，然后在真实场景下一跑就全是失败，可以考虑加一点对抗性评审、破坏性测试、集成测试、实际环境测试的skills，但更重要的还是自己知道到底想要测啥功能，写测试为了验证哪个部分的功能是否完备</li>
+<li>工作流不仅需要保证最终生成的产物正确，也需要保证它的可读性、可迭代性，保证用户本身理解了这个产物，最理想化的情况就是 用户对AI写的了解 &gt;&#x3D; 自己手写的，需要尽可能做到这一点。例如代码都增加中英文的注释、生成一系列的介绍文档、增加代码阅读的skills，让AI监督你学习代码</li>
+<li>时不时看一看工作流仓库的相关skills与经验，熟悉它的使用，思考如何优化，最近AI使用过程中遇到了哪些问题，并定期从热门社区copy一些比较好的skills过来</li>
+</ol>
 <p><strong>功能开发工作流</strong></p>
-<p>需求澄清-prd</p>
+<ol>
+<li>需求澄清  grill-me</li>
+<li>方案探索 brainstorming</li>
+<li>反驳设计方案 self-critique</li>
+<li>生成PRD to-prd</li>
+<li>生成spec to-spec</li>
+<li>生成</li>
+</ol>
 <p>技术方案-spec</p>
 <p>spec评审</p>
 <p>测试先行</p>
