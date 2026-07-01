@@ -4,6 +4,33 @@
   
   
   <entry>
+    <title>工具使用与分析</title>
+    <link href="/blog/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%88%86%E6%9E%90.html"/>
+    <url>/blog/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%88%86%E6%9E%90.html</url>
+    
+    <content type="html"><![CDATA[<meta name="referrer" content="no-referrer" /><h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><h1 id="FIO"><a href="#FIO" class="headerlink" title="FIO"></a>FIO</h1><h1 id="blktrace-blkparse-btt"><a href="#blktrace-blkparse-btt" class="headerlink" title="blktrace&#x2F;blkparse&#x2F;btt"></a>blktrace&#x2F;blkparse&#x2F;btt</h1><h1 id="perf"><a href="#perf" class="headerlink" title="perf"></a>perf</h1><h1 id="bpf"><a href="#bpf" class="headerlink" title="bpf"></a>bpf</h1><h1 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h1><h1 id="dstat"><a href="#dstat" class="headerlink" title="dstat"></a>dstat</h1><h1 id="pidstat"><a href="#pidstat" class="headerlink" title="pidstat"></a>pidstat</h1>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习记录</category>
+      
+      <category>tech</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>工具使用、技术使用</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>2026年终总结素材</title>
     <link href="/life/2026%E5%B9%B4%E7%BB%88%E6%80%BB%E7%BB%93.html"/>
     <url>/life/2026%E5%B9%B4%E7%BB%88%E6%80%BB%E7%BB%93.html</url>
