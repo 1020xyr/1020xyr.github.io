@@ -284,56 +284,18 @@
   <div class="row mx-auto index-card">
     
     
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/continue/%E9%9D%A2%E8%AF%95%E4%BB%A3%E7%A0%81%E8%AE%B0%E5%BD%95.html" target="_blank">
-          <img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202311250947998.jpg" srcset="/img/loading.gif" lazyload alt="面试代码记录">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
+    <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/continue/%E9%9D%A2%E8%AF%95%E4%BB%A3%E7%A0%81%E8%AE%B0%E5%BD%95.html" target="_blank">
-          面试代码记录
+        <a href="/blog/CPU%E4%B9%B1%E5%BA%8F%E5%8F%91%E5%B0%84%E4%B8%8E%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C.html" target="_blank">
+          CPU乱序发射与内存屏障
         </a>
       </h2>
 
       
-      <a class="index-excerpt " href="/continue/%E9%9D%A2%E8%AF%95%E4%BB%A3%E7%A0%81%E8%AE%B0%E5%BD%95.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/CPU%E4%B9%B1%E5%BA%8F%E5%8F%91%E5%B0%84%E4%B8%8E%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C.html" target="_blank">
         <div>
-          面试代码题可以刷一刷CodeTop 链表是否存在环给你一个链表的头节点 head ，判断链表中是否有环。 123456789101112131415161718#include &lt;stdio.h&gt;#include &lt;stdbool.h&gt;struct ListNode &#123;  int val;  struct ListNode* next;&#125;;bool
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/blog/linux%20UIO%E9%A9%B1%E5%8A%A8%E5%AE%9E%E8%B7%B5.html" target="_blank">
-          <img src="https://img-blog.csdnimg.cn/693bfec7358749978e789cce6e7df1c1.png" srcset="/img/loading.gif" lazyload alt="linux UIO驱动实践">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/linux%20UIO%E9%A9%B1%E5%8A%A8%E5%AE%9E%E8%B7%B5.html" target="_blank">
-          linux UIO驱动实践
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/blog/linux%20UIO%E9%A9%B1%E5%8A%A8%E5%AE%9E%E8%B7%B5.html" target="_blank">
-        <div>
-          环境搭建Ubuntu20地址虚拟机安装与配置见博客开头：驱动虚拟环境搭建记录 一直以为用镜像直接安装的Ubuntu没有内核源码，不能用来编译驱动，只能由源码编译内核后切换内核才能进行驱动的编译，没想到一安装完就可以编译了，错误的印象。用hello world测试环境是否搭建成功 12345678910111213141516171819#include &lt;linux/init.h
+          在提出问题之前，先看一段简单的代码。 1234567891011121314151617181920212223242526272829303132333435363738#include &lt;stdio.h&gt;#include &lt;pthread.h&gt;int x = 0, y = 0;void* mythread1(void*)&#123;    while (y ==
         </div>
       </a>
 
@@ -351,15 +313,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E6%B3%A8%E9%87%8A%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89.html" target="_blank">
-          NVMe驱动注释（持续更新）
+        <a href="/blog/MIT6.S081%202021%20Copy-on-Write%20Fork%20for%20xv6.html" target="_blank">
+          MIT6.S081 2021 Copy-on-Write Fork for xv6
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E6%B3%A8%E9%87%8A%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20Copy-on-Write%20Fork%20for%20xv6.html" target="_blank">
         <div>
-          往期文章：NVMe驱动学习记录-1NVMe驱动学习记录-2NVMe驱动 请求路径学习记录 整合了之前文章的一些内容 参考源码地址：https://mirrors.tuna.tsinghua.edu.cn/kernel/v4.x/linux-4.19.90.tar.gz      linux-4.19.90\drivers\nvme\host  源码阅读环境：Windows 搭建 openg
+          简要介绍 There is a saying in computer systems that any systems problem can be solved with a level of indirection.任何系统问题都能通过一个中间层解决   修改uvmcopy() 函数，将父进程物理页映射子进程，而不是分配新的物理页。清除父进程与子进程页表项的PTE_W项 修改usertr
         </div>
       </a>
 
@@ -377,47 +339,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/leetcode%E8%AE%B0%E5%BD%952.html" target="_blank">
-          leetcode记录2
+        <a href="/blog/MIT6.S081%202021%20file%20system.html" target="_blank">
+          MIT6.S081 2021 file system
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/leetcode%E8%AE%B0%E5%BD%952.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20file%20system.html" target="_blank">
         <div>
-          推荐博客五大常用算法：分治、动态规划、贪心、回溯和分支界定刷题时注意边界条件&#x2F;特殊条件的处理leetcode记录1 树的子结构输入两棵二叉树A和B，判断B是不是A的子结构。(约定空树不是任意一个树的子结构) B是A的子结构， 即 A中有出现和B相同的结构和节点值。 思路： 由于是树相关的题目，故大致思路就是使用递归解决，也意识到需要借助辅助函数实现，但一直无法确定辅助函数的写法与用
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/blog/ZNS%E4%B8%8ELevelDB%E7%9B%B8%E5%85%B3%E8%AE%B0%E5%BD%95.html" target="_blank">
-          <img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202405221918594.png" srcset="/img/loading.gif" lazyload alt="ZNS与LevelDB相关记录">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/ZNS%E4%B8%8ELevelDB%E7%9B%B8%E5%85%B3%E8%AE%B0%E5%BD%95.html" target="_blank">
-          ZNS与LevelDB相关记录
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/blog/ZNS%E4%B8%8ELevelDB%E7%9B%B8%E5%85%B3%E8%AE%B0%E5%BD%95.html" target="_blank">
-        <div>
-          仅做简单记录，自用，没太大价值
+          xv6 book记录看pdf看困了，主要看看几张图，最后再看看real world就可以了xv6文件系统架构  The disk layer reads and writes blocks on an virtio hard drive. The buffer cache layer caches disk blocks and synchronizes access to them, ma
         </div>
       </a>
 
@@ -435,47 +365,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/leveldb%E7%AC%AC%E4%BA%8C%E5%B9%95%20%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0.html" target="_blank">
-          leveldb第二幕 代码阅读笔记
+        <a href="/blog/MIT6.S081%202021%20locks.html" target="_blank">
+          MIT6.S081 2021 locks
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/leveldb%E7%AC%AC%E4%BA%8C%E5%B9%95%20%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20locks.html" target="_blank">
         <div>
-          仅做个人记录 简单的Write路径1 静态库与测试程序以Debug模式生成静态库 12345mkdir -p build_dbg &amp;&amp; cd build_dbgcmake -DCMAKE_BUILD_TYPE=Debug .. &amp;&amp; cmake --build .cp libleveldb.a  libleveldb_dbg.amv libleveldb_d
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/blog/%E3%80%8AC++%E6%B2%89%E6%80%9D%E5%BD%95%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
-          <img src="https://img-blog.csdnimg.cn/0150c2c57e904e4f8360ffc71badd3df.jpeg" srcset="/img/loading.gif" lazyload alt="《C++沉思录》读书笔记">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/%E3%80%8AC++%E6%B2%89%E6%80%9D%E5%BD%95%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
-          《C++沉思录》读书笔记
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/blog/%E3%80%8AC++%E6%B2%89%E6%80%9D%E5%BD%95%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
-        <div>
-          序幕本书中多次强调，C++最基本的设计理念就是用类来表示概念，C++解决复杂性的基本原则是抽象，面向对象思想是C++的手段之一，而不是全部。本书并不是教C++语言本身，而是想告诉你用C++时怎样进行思考，以及如何思考问题并用C++表述解决方案。知识可以通过系统学习获得，智慧则不能。 什么事情是C++可以做好而C做不好的。例子：需求1：实现打印消息的功能C 12345678#include &
+          xv6 book记录竞态 1234567891011121314struct element &#123;	int data;	struct element *next;&#125;;struct element *list = 0;void push(int data)&#123;	struct element *l;	l = malloc(sizeof *l);	l-&gt;data =
         </div>
       </a>
 
@@ -493,15 +391,41 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/leveldb%E7%AC%AC%E4%B8%80%E5%B9%95%20%E8%B5%84%E6%BA%90%E6%8E%A8%E8%8D%90.html" target="_blank">
-          leveldb第一幕 资源推荐
+        <a href="/blog/MIT6.S081%202021%20networking.html" target="_blank">
+          MIT6.S081 2021 networking
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/leveldb%E7%AC%AC%E4%B8%80%E5%B9%95%20%E8%B5%84%E6%BA%90%E6%8E%A8%E8%8D%90.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20networking.html" target="_blank">
         <div>
-          博客推荐书籍那岩. Leveldb实现解析.pdf相关博客leveldb实现原理一文带你看透基于LSM-tree的NoSQL系统优化方向（到2020年为止 最全、最新）浅析 Bigtable 和 LevelDB 的实现LevelDB之Compaction实现庖丁解LevelDB之概览Leveldb二三事leveldb为什么要设计为多层结构呢？LevelDB 之 Compaction系列博客
+          console驱动与时钟中断16550芯片相关介绍：16550芯片课程介绍由于不是学硬件的，一直没太搞懂这几个东西的交互关系是啥，我的理解是如下图所示。如果不看display这一边，那这个驱动是非常好懂的，正好和开头的介绍吻合，驱动存在两个上下文：内核进程上下文和中断上下文。分别对应consolewrite consoleread和uartintr三个函数。但我一直没看懂的是为啥uarti
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/MIT6.S081%202021%20mmap.html" target="_blank">
+          MIT6.S081 2021 mmap
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20mmap.html" target="_blank">
+        <div>
+          You should implement enough mmap and munmap functionality to make the mmaptest test program work. If mmaptest doesn’t use a mmap feature, you don’t need to implement that feature.  这个实验还是比较复杂的，用gd
         </div>
       </a>
 
@@ -517,23 +441,49 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/blog/%E3%80%8AGo%E8%AF%AD%E8%A8%80%E5%B9%B6%E5%8F%91%E4%B9%8B%E9%81%93%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
-          <img src="https://img-blog.csdnimg.cn/72e6d9806af948718d356d0701efa18d.jpeg" srcset="/img/loading.gif" lazyload alt="《Go语言并发之道》读书笔记">
+        <a href="/blog/MIT6.S081%202021.html" target="_blank">
+          <img src="https://img-blog.csdnimg.cn/881c3b87741c43dfa749a98eedb20552.png" srcset="/img/loading.gif" lazyload alt="MIT6.S081 2021">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/%E3%80%8AGo%E8%AF%AD%E8%A8%80%E5%B9%B6%E5%8F%91%E4%B9%8B%E9%81%93%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
-          《Go语言并发之道》读书笔记
+        <a href="/blog/MIT6.S081%202021.html" target="_blank">
+          MIT6.S081 2021
         </a>
       </h2>
 
       
-      <a class="index-excerpt " href="/blog/%E3%80%8AGo%E8%AF%AD%E8%A8%80%E5%B9%B6%E5%8F%91%E4%B9%8B%E9%81%93%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
+      <a class="index-excerpt " href="/blog/MIT6.S081%202021.html" target="_blank">
         <div>
-          由于不怎么熟悉GO，只做简单的摘录，敲敲示例代码 鸭子类型：当看到一只鸟走起来像鸭子、游泳起来像鸭子、叫起来也像鸭子，那么这只鸟就可以被称为鸭子。面试扣分点：什么是鸭子类型 Go-FAQ 翻译 | SeekerGo interface &amp; struct 接口与结构体Go: break label与goto label的区别Go语言interface详解go结构体和结构体指针的应用，
+          There is a saying in computer systems that any systems problem can be solved with a level of indirection.  6.S081 lab地址 推荐博客：二十八画生征友：一起来通关6.S081&#x2F;6.828吧~ piazza课程主页：https://piazza.com/mooc_se
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/MIT6.S081%20Multithreading.html" target="_blank">
+          MIT6.S081 Multithreading
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%20Multithreading.html" target="_blank">
+        <div>
+          xv6 book记录阅读xv6 book之前，简要看一下《深入了解linux内核》进程一章（不怎么看得懂），当然xv6 book也看的犯困。该实验比较简单，就看书花点时间。  First, xv6’s sleep and wakeup mechanism switches when a process waits for device or pipe I&#x2F;O to complete
         </div>
       </a>
 
@@ -549,23 +499,49 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/blog/%E3%80%8Ac%E4%B8%93%E5%AE%B6%E7%BC%96%E7%A8%8B%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
-          <img src="https://img-blog.csdnimg.cn/722ff174ad794bfd96d0e2cc63b59769.jpeg" srcset="/img/loading.gif" lazyload alt="《c专家编程》读书笔记">
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
+          <img src="https://img-blog.csdnimg.cn/225b8979d7624d13a5645fa144894e8f.jpeg" srcset="/img/loading.gif" lazyload alt="NVMe驱动 请求路径学习记录">
         </a>
       </div>
     
     <article class="col-12 col-md-8 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/%E3%80%8Ac%E4%B8%93%E5%AE%B6%E7%BC%96%E7%A8%8B%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
-          《c专家编程》读书笔记
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
+          NVMe驱动 请求路径学习记录
         </a>
       </h2>
 
       
-      <a class="index-excerpt " href="/blog/%E3%80%8Ac%E4%B8%93%E5%AE%B6%E7%BC%96%E7%A8%8B%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.html" target="_blank">
+      <a class="index-excerpt " href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
         <div>
-          第一章 C：穿越时空的迷雾 这也是为什么C++语言令人失望的原因：它对C语言中存在的一些最基本的问题没有什么改进，而它对C语言最重要的扩展（类）却是建立在脆弱的C类型模型上。  C–K&amp;R C 与 ANSI C的区别1.10 安静的改变——无符号整数与有符号比较 123456789101112131415161718192021222324252627282930313233343
+          由《深入浅出SSD》 6.5节trace分析可知，主机读请求的执行流程如下：  主机准备好命令放在SQ 主机通过写SQ的Tail DB，通知SSD来取命令（Memory Write TLP） SSD收到通知，去主机端的SQ取指令（Memory Read TLP） SSD执行命令，把数据传给主机（Memory Write TLP） SSD往主机的CQ中返回状态 SSD采用中断的方式告诉主机去处
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-1.html" target="_blank">
+          NVMe驱动学习记录-1
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-1.html" target="_blank">
+        <div>
+          初始化nvme-core模块 创建工作队列 分配设备号 创建class类型的对象  解释 工作队列  workqueue是对内核线程封装的用于处理各种工作项的一种处理方法， 由于处理对象是用链表拼接一个个工作项， 依次取出来处理， 然后从链表删除，就像一个队列排好队依次处理一样， 所以也称工作队列 所谓封装可以简单理解一个中转站， 一边指向“合适”的内核线程， 一边接受你丢过来的工作项， 用
         </div>
       </a>
 
