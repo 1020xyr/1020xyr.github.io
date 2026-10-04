@@ -58,6 +58,7 @@
 <link rel="stylesheet" href="/css/csdn.css">
 <link rel="stylesheet" href="/css/top.css">
 <link rel="stylesheet" href="/css/robot-icon.css">
+<link rel="stylesheet" href="/css/novel.css">
 
 
 
@@ -135,6 +136,18 @@
     <!-- Collapsible content -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/novel/">
+                <i class="icon-novel"></i>
+                <span>AI网文</span>
+              </a>
+            </li>
+          
         
           
           
@@ -368,24 +381,18 @@
   <div class="row mx-auto index-card">
     
     
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/blog/%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95.html" target="_blank">
-          <img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202312181630686.webp" srcset="/img/loading.gif" lazyload alt="内核驱动开发记录">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
+    <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95.html" target="_blank">
-          内核驱动开发记录
+        <a href="/blog/%E5%9D%97%E8%AE%BE%E5%A4%87%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E5%AE%9E%E9%AA%8C%E8%AE%B0%E5%BD%95.html" target="_blank">
+          块设备文件读取实验记录
         </a>
       </h2>
 
       
-      <a class="index-excerpt " href="/blog/%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/%E5%9D%97%E8%AE%BE%E5%A4%87%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E5%AE%9E%E9%AA%8C%E8%AE%B0%E5%BD%95.html" target="_blank">
         <div>
-          前言如果你刚接触Linux内核驱动开发，那么这篇博客应该对你有所帮助！祝你好运 推荐阅读：《C和指针》 《C专家编程》 《C陷阱与缺陷》《Linux设备驱动程序》 《linux内核设计与实现》 《深入理解linux内核》 《Linux内核源代码情景分析》 《Debug Hacks中文版—深入调试的技术和工具》第一要义：学会放弃第二要义：不要修改代码屎山第三要义：遇到无法解决的问题&#x2F;
+          文件： 一个linux文件就是一个字节序列，所有的IO设备（例如网络，磁盘和终端）都被模型化为文件，而所有的的输入和输出都被当做相应文件的读和写来执行。这种将设备优雅地映射为文件的方式，允许linux内核引出一个简单，低级的应用接口，称为Unix I&#x2F;O，这使得所有的输入和输出都能以一种统计且一致的方式来执行。（选自csapp） 文件描述符：  文件描述符（file descri
         </div>
       </a>
 
@@ -426,44 +433,24 @@
   <div class="row mx-auto index-card">
     
     
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/%E5%A6%82%E4%BD%95%E5%90%8C%E6%97%B6%E6%89%A7%E8%A1%8CIDEA%E7%9A%84%E5%8D%95%E4%B8%AA%E4%BB%A3%E7%A0%81.html" target="_blank">
-          如何同时执行IDEA的单个代码
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/blog/%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95.html" target="_blank">
+          <img src="https://jiasun-blog.oss-cn-hangzhou.aliyuncs.com/blog/202312181630686.webp" srcset="/img/loading.gif" lazyload alt="内核驱动开发记录">
         </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/%E5%A6%82%E4%BD%95%E5%90%8C%E6%97%B6%E6%89%A7%E8%A1%8CIDEA%E7%9A%84%E5%8D%95%E4%B8%AA%E4%BB%A3%E7%A0%81.html" target="_blank">
-        <div>
-          在server client类的程序中，我们经常需要多次执行client端程序，但IDEA默认不能并行运行假设现在已经运行了server 和 client代码，如果想要再次运行client代码，则会碰到该提示即该文件不允许并行运行 解决方法：勾中allow parallel run选项 apply然后就可以同时运行了
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
       </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
     
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
+    <article class="col-12 col-md-8 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/%E5%9D%97%E8%AE%BE%E5%A4%87%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E5%AE%9E%E9%AA%8C%E8%AE%B0%E5%BD%95.html" target="_blank">
-          块设备文件读取实验记录
+        <a href="/blog/%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95.html" target="_blank">
+          内核驱动开发记录
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/%E5%9D%97%E8%AE%BE%E5%A4%87%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96%E5%AE%9E%E9%AA%8C%E8%AE%B0%E5%BD%95.html" target="_blank">
+      <a class="index-excerpt " href="/blog/%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E8%AE%B0%E5%BD%95.html" target="_blank">
         <div>
-          文件： 一个linux文件就是一个字节序列，所有的IO设备（例如网络，磁盘和终端）都被模型化为文件，而所有的的输入和输出都被当做相应文件的读和写来执行。这种将设备优雅地映射为文件的方式，允许linux内核引出一个简单，低级的应用接口，称为Unix I&#x2F;O，这使得所有的输入和输出都能以一种统计且一致的方式来执行。（选自csapp） 文件描述符：  文件描述符（file descri
+          前言如果你刚接触Linux内核驱动开发，那么这篇博客应该对你有所帮助！祝你好运 推荐阅读：《C和指针》 《C专家编程》 《C陷阱与缺陷》《Linux设备驱动程序》 《linux内核设计与实现》 《深入理解linux内核》 《Linux内核源代码情景分析》 《Debug Hacks中文版—深入调试的技术和工具》第一要义：学会放弃第二要义：不要修改代码屎山第三要义：遇到无法解决的问题&#x2F;
         </div>
       </a>
 
@@ -507,15 +494,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/%E6%95%B0%E7%BB%84%E4%B8%8E%E6%8C%87%E9%92%88%E5%AE%9E%E9%AA%8C.html" target="_blank">
-          数组与指针实验
+        <a href="/blog/%E5%A6%82%E4%BD%95%E5%90%8C%E6%97%B6%E6%89%A7%E8%A1%8CIDEA%E7%9A%84%E5%8D%95%E4%B8%AA%E4%BB%A3%E7%A0%81.html" target="_blank">
+          如何同时执行IDEA的单个代码
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/%E6%95%B0%E7%BB%84%E4%B8%8E%E6%8C%87%E9%92%88%E5%AE%9E%E9%AA%8C.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/%E5%A6%82%E4%BD%95%E5%90%8C%E6%97%B6%E6%89%A7%E8%A1%8CIDEA%E7%9A%84%E5%8D%95%E4%B8%AA%E4%BB%A3%E7%A0%81.html" target="_blank">
         <div>
-          指针与数组实验先简单看一下以下c代码 123456789101112#include &lt;stdio.h&gt;#include &lt;stdlib.h&gt;int main() &#123;  char array[10];  array[0] = 0x56;  array[1] = 0x78;  array[9] = 0x12;  char *p = (char *)malloc
+          在server client类的程序中，我们经常需要多次执行client端程序，但IDEA默认不能并行运行假设现在已经运行了server 和 client代码，如果想要再次运行client代码，则会碰到该提示即该文件不允许并行运行 解决方法：勾中allow parallel run选项 apply然后就可以同时运行了
         </div>
       </a>
 
@@ -548,6 +535,32 @@
       <a class="index-excerpt " href="/blog/%E5%AE%9E%E4%B9%A0%E6%9C%BA%E8%AF%95%E4%BB%A3%E7%A0%81%E8%AE%B0%E5%BD%95.html" target="_blank">
         <div>
           2023-03-11  美团机试题目：美团2024届暑期实习第一轮后端笔试详解通过了前三道，花了一堆时间在第四道上，一分没得，第五题都没时间看。题目的设置有点无语，一到四题安排在一起，第五题安排在一起，当时不知道提交后可以继续修改，进了一到四题的项就不敢提交，以为第五题单独放一起肯定很难，最后没时间了看了一下第五题，比较简单。搞不明白为啥要把第五题单独列一个项，要不然怎样都能写出四道来 第一
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/%E6%95%B0%E7%BB%84%E4%B8%8E%E6%8C%87%E9%92%88%E5%AE%9E%E9%AA%8C.html" target="_blank">
+          数组与指针实验
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/%E6%95%B0%E7%BB%84%E4%B8%8E%E6%8C%87%E9%92%88%E5%AE%9E%E9%AA%8C.html" target="_blank">
+        <div>
+          指针与数组实验先简单看一下以下c代码 123456789101112#include &lt;stdio.h&gt;#include &lt;stdlib.h&gt;int main() &#123;  char array[10];  array[0] = 0x56;  array[1] = 0x78;  array[9] = 0x12;  char *p = (char *)malloc
         </div>
       </a>
 
@@ -698,6 +711,10 @@
   <script  src="/js/local-search.js" ></script>
 
 
+
+
+  
+<script src="/js/novel-reader.js"></script>
 
 
 
