@@ -588,74 +588,64 @@ body.novel-reading-page .page-content > p {
   color: #368559;
 }
 
-.novel-video-stage {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-  border-radius: 12px;
-  background:
-    radial-gradient(circle at 70% 20%, rgba(219, 189, 132, .2), transparent 23%),
-    linear-gradient(150deg, #1e3941, #0d2026 64%, #08161b);
-}
-
-.novel-video-placeholder {
-  position: absolute;
-  inset: 0;
+.novel-video-link-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  color: #eadfc7;
-  text-align: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--novel-accent) 18%, var(--novel-line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--novel-paper) 80%, var(--novel-accent-soft));
 }
 
-.novel-video-placeholder::before,
-.novel-video-placeholder::after {
-  content: '';
-  position: absolute;
-  inset: auto -5% 14% -5%;
-  height: 1px;
-  background: rgba(234, 223, 199, .12);
-  transform: rotate(-7deg);
+.novel-video-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: .24rem;
 }
 
-.novel-video-placeholder::after {
-  inset: 18% 8% auto;
-  transform: rotate(4deg);
+.novel-video-platform {
+  color: var(--novel-accent);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .1em;
 }
 
-.novel-video-play {
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  margin-bottom: .8rem;
-  padding-left: 4px;
-  border: 1px solid rgba(234, 223, 199, .42);
-  border-radius: 50%;
-  background: rgba(255,255,255,.06);
-  font-size: 1.3rem;
+.novel-video-copy strong {
+  color: var(--novel-ink);
+  font-family: 'Noto Serif SC', 'Songti SC', STSong, serif;
+  font-size: 1rem;
 }
 
-.novel-video-placeholder strong,
-.novel-video-placeholder small {
-  position: relative;
-  z-index: 1;
-}
-
-.novel-video-placeholder small {
-  margin-top: .4rem;
-  color: rgba(234, 223, 199, .64);
+.novel-video-copy small {
+  color: var(--novel-muted);
   font-size: .75rem;
 }
 
-.novel-video-player {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #071216;
+.novel-video-link {
+  flex: 0 0 auto;
+  padding: .58rem .82rem;
+  border-radius: 999px;
+  background: var(--novel-accent);
+  color: #fff !important;
+  font-size: .76rem;
+  font-weight: 700;
+  text-decoration: none !important;
+  transition: transform .18s ease, opacity .18s ease;
+}
+
+.novel-video-link:not(.is-disabled):hover {
+  opacity: .88;
+  transform: translateY(-1px);
+}
+
+.novel-video-link.is-disabled {
+  border: 1px solid var(--novel-line);
+  background: transparent;
+  color: var(--novel-muted) !important;
+  cursor: default;
 }
 
 .novel-book-link {
@@ -914,6 +904,15 @@ body.novel-reading-page #valine .vsubmit {
   .novel-chapter-nav {
     grid-template-columns: 1fr 64px 1fr;
     gap: .45rem;
+  }
+
+  .novel-video-link-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .novel-video-link {
+    text-align: center;
   }
 
   .novel-nav-link span {

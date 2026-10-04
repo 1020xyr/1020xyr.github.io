@@ -40,30 +40,6 @@
 
   document.body.classList.add('novel-reading-page');
 
-  document.querySelectorAll('[data-chapter-video]').forEach(function (container) {
-    const source = container.dataset.videoSrc;
-    if (!source) return;
-
-    const stage = container.querySelector('.novel-video-stage');
-    if (!stage) return;
-
-    const video = document.createElement('video');
-    video.className = 'novel-video-player';
-    video.controls = true;
-    video.preload = 'metadata';
-    video.playsInline = true;
-    video.src = source;
-    if (container.dataset.videoPoster) video.poster = container.dataset.videoPoster;
-    stage.replaceChildren(video);
-
-    const status = container.querySelector('.novel-video-status');
-    if (status) {
-      status.textContent = '已上线';
-      status.classList.add('is-ready');
-      status.classList.remove('is-making');
-    }
-  });
-
   const root = document.documentElement;
   const pageContent = document.querySelector('.page-content');
   const chapterPath = window.location.pathname;
