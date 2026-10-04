@@ -3,17 +3,35 @@
 
   const readerMarker = document.querySelector('.novel-reader-marker');
   const libraryMarker = document.querySelector('.novel-library-marker');
+  const shelfMarker = document.querySelector('.novel-shelf-marker');
+
+  const getLastChapter = function (bookId) {
+    return localStorage.getItem(`novel-${bookId}-last-chapter`)
+      || (bookId === 'ten-lives' ? localStorage.getItem('novel-ten-lives-last-chapter') : null);
+  };
+
+  if (shelfMarker) {
+    document.body.classList.add('novel-shelf-page');
+    document.querySelectorAll('[data-continue-book]').forEach(function (link) {
+      const bookId = link.dataset.continueBook;
+      const lastChapter = getLastChapter(bookId);
+      if (lastChapter) {
+        link.href = lastChapter;
+        link.textContent = '继续阅读';
+      }
+    });
+    return;
+  }
 
   if (libraryMarker) {
     document.body.classList.add('novel-library-page');
     const continueLink = document.querySelector('[data-continue-reading]');
-    const lastChapter = localStorage.getItem('novel-ten-lives-last-chapter');
+    const bookId = libraryMarker.dataset.bookId || 'ten-lives';
+    const lastChapter = getLastChapter(bookId);
     if (continueLink && lastChapter) {
       const target = document.querySelector(`[data-chapter-path="${lastChapter}"]`);
-      if (target) {
-        continueLink.href = target.href;
-        continueLink.textContent = '继续阅读';
-      }
+      continueLink.href = target ? target.href : lastChapter;
+      continueLink.textContent = '继续阅读';
     }
     return;
   }
@@ -22,15 +40,40 @@
 
   document.body.classList.add('novel-reading-page');
 
+  document.querySelectorAll('[data-chapter-video]').forEach(function (container) {
+    const source = container.dataset.videoSrc;
+    if (!source) return;
+
+    const stage = container.querySelector('.novel-video-stage');
+    if (!stage) return;
+
+    const video = document.createElement('video');
+    video.className = 'novel-video-player';
+    video.controls = true;
+    video.preload = 'metadata';
+    video.playsInline = true;
+    video.src = source;
+    if (container.dataset.videoPoster) video.poster = container.dataset.videoPoster;
+    stage.replaceChildren(video);
+
+    const status = container.querySelector('.novel-video-status');
+    if (status) {
+      status.textContent = '已上线';
+      status.classList.add('is-ready');
+      status.classList.remove('is-making');
+    }
+  });
+
   const root = document.documentElement;
   const pageContent = document.querySelector('.page-content');
   const chapterPath = window.location.pathname;
   const chapterNumber = readerMarker.dataset.chapter;
+  const bookId = readerMarker.dataset.bookId || 'ten-lives';
   const progress = document.createElement('div');
   progress.className = 'novel-progress';
   document.body.appendChild(progress);
 
-  localStorage.setItem('novel-ten-lives-last-chapter', chapterPath);
+  localStorage.setItem(`novel-${bookId}-last-chapter`, chapterPath);
 
   const savedSize = Number(localStorage.getItem('novel-reading-size'));
   if (savedSize >= 16 && savedSize <= 24) {
@@ -61,6 +104,12 @@
       const next = Math.min(24, Math.max(16, current + Number(button.dataset.fontChange)));
       root.style.setProperty('--novel-reading-size', `${next}px`);
       localStorage.setItem('novel-reading-size', String(next));
+    });
+  });
+
+  document.querySelectorAll('[data-scroll-top]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   });
 
