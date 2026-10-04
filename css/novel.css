@@ -154,15 +154,29 @@ body:has(.novel-reader-marker) #live2dcanvas {
   background: radial-gradient(circle at 70% 18%, rgba(244, 220, 163, .9) 0 2px, transparent 3px);
 }
 
-.novel-mini-cover span {
+.novel-mini-cover-title {
   position: absolute;
-  inset: 0;
+  inset: 14px 0 48px;
   display: grid;
   place-items: center;
   writing-mode: vertical-rl;
   font-family: 'Noto Serif SC', 'Songti SC', STSong, serif;
   font-size: 1.55rem;
   letter-spacing: .22em;
+}
+
+.novel-mini-cover-en {
+  position: absolute;
+  right: 8px;
+  bottom: 14px;
+  left: 8px;
+  color: rgba(238, 225, 194, .66);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: .56rem;
+  letter-spacing: .12em;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .novel-book-card-body {
