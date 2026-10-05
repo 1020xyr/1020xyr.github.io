@@ -300,15 +300,41 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/MIT6.S081%202021%20locks.html" target="_blank">
-          MIT6.S081 2021 locks
+        <a href="/blog/MIT6.S081%202021%20mmap.html" target="_blank">
+          MIT6.S081 2021 mmap
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20locks.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20mmap.html" target="_blank">
         <div>
-          xv6 book记录竞态 1234567891011121314struct element &#123;	int data;	struct element *next;&#125;;struct element *list = 0;void push(int data)&#123;	struct element *l;	l = malloc(sizeof *l);	l-&gt;data =
+          You should implement enough mmap and munmap functionality to make the mmaptest test program work. If mmaptest doesn’t use a mmap feature, you don’t need to implement that feature.  这个实验还是比较复杂的，用gd
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/MIT6.S081%202021%20networking.html" target="_blank">
+          MIT6.S081 2021 networking
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20networking.html" target="_blank">
+        <div>
+          console驱动与时钟中断16550芯片相关介绍：16550芯片课程介绍由于不是学硬件的，一直没太搞懂这几个东西的交互关系是啥，我的理解是如下图所示。如果不看display这一边，那这个驱动是非常好懂的，正好和开头的介绍吻合，驱动存在两个上下文：内核进程上下文和中断上下文。分别对应consolewrite consoleread和uartintr三个函数。但我一直没看懂的是为啥uarti
         </div>
       </a>
 
@@ -335,64 +361,6 @@
       <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%20Multithreading.html" target="_blank">
         <div>
           xv6 book记录阅读xv6 book之前，简要看一下《深入了解linux内核》进程一章（不怎么看得懂），当然xv6 book也看的犯困。该实验比较简单，就看书花点时间。  First, xv6’s sleep and wakeup mechanism switches when a process waits for device or pipe I&#x2F;O to complete
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
-          <img src="https://img-blog.csdnimg.cn/225b8979d7624d13a5645fa144894e8f.jpeg" srcset="/img/loading.gif" lazyload alt="NVMe驱动 请求路径学习记录">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
-          NVMe驱动 请求路径学习记录
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
-        <div>
-          由《深入浅出SSD》 6.5节trace分析可知，主机读请求的执行流程如下：  主机准备好命令放在SQ 主机通过写SQ的Tail DB，通知SSD来取命令（Memory Write TLP） SSD收到通知，去主机端的SQ取指令（Memory Read TLP） SSD执行命令，把数据传给主机（Memory Write TLP） SSD往主机的CQ中返回状态 SSD采用中断的方式告诉主机去处
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-1.html" target="_blank">
-          NVMe驱动学习记录-1
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-1.html" target="_blank">
-        <div>
-          初始化nvme-core模块 创建工作队列 分配设备号 创建class类型的对象  解释 工作队列  workqueue是对内核线程封装的用于处理各种工作项的一种处理方法， 由于处理对象是用链表拼接一个个工作项， 依次取出来处理， 然后从链表删除，就像一个队列排好队依次处理一样， 所以也称工作队列 所谓封装可以简单理解一个中转站， 一边指向“合适”的内核线程， 一边接受你丢过来的工作项， 用
         </div>
       </a>
 
@@ -442,6 +410,64 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-1.html" target="_blank">
+          NVMe驱动学习记录-1
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95-1.html" target="_blank">
+        <div>
+          初始化nvme-core模块 创建工作队列 分配设备号 创建class类型的对象  解释 工作队列  workqueue是对内核线程封装的用于处理各种工作项的一种处理方法， 由于处理对象是用链表拼接一个个工作项， 依次取出来处理， 然后从链表删除，就像一个队列排好队依次处理一样， 所以也称工作队列 所谓封装可以简单理解一个中转站， 一边指向“合适”的内核线程， 一边接受你丢过来的工作项， 用
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
+          <img src="https://img-blog.csdnimg.cn/225b8979d7624d13a5645fa144894e8f.jpeg" srcset="/img/loading.gif" lazyload alt="NVMe驱动 请求路径学习记录">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
+          NVMe驱动 请求路径学习记录
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/blog/NVMe%E9%A9%B1%E5%8A%A8%20%E8%AF%B7%E6%B1%82%E8%B7%AF%E5%BE%84%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" target="_blank">
+        <div>
+          由《深入浅出SSD》 6.5节trace分析可知，主机读请求的执行流程如下：  主机准备好命令放在SQ 主机通过写SQ的Tail DB，通知SSD来取命令（Memory Write TLP） SSD收到通知，去主机端的SQ取指令（Memory Read TLP） SSD执行命令，把数据传给主机（Memory Write TLP） SSD往主机的CQ中返回状态 SSD采用中断的方式告诉主机去处
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/blog/Tinyhttpd%E5%AE%9E%E6%88%98%E4%B8%80%EF%BC%9A%E8%AE%BE%E7%BD%AE%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%8E%AF%E5%A2%83%EF%BC%8C%E8%BF%90%E8%A1%8CTinyhttpd.html" target="_blank">
           Tinyhttpd实战一：设置虚拟机环境，运行Tinyhttpd
         </a>
@@ -451,58 +477,6 @@
       <a class="index-excerpt index-excerpt__noimg" href="/blog/Tinyhttpd%E5%AE%9E%E6%88%98%E4%B8%80%EF%BC%9A%E8%AE%BE%E7%BD%AE%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%8E%AF%E5%A2%83%EF%BC%8C%E8%BF%90%E8%A1%8CTinyhttpd.html" target="_blank">
         <div>
           安装linux虚拟机首先安装vmware软件，而后下载Ubuntu iso文件下载地址而后创建Ubuntu虚拟机，运行内存与硬盘建议为4G+20G建议离线安装 解决vmware tools无法安装问题可尝试安装open vm tool 和 open-vm-tools-desktop,实现文件拖动与复制粘贴共享博客VMware Tools是VMware虚拟机中自带的一种增强工具，是VMware
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/MIT6.S081%202021%20Copy-on-Write%20Fork%20for%20xv6.html" target="_blank">
-          MIT6.S081 2021 Copy-on-Write Fork for xv6
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/MIT6.S081%202021%20Copy-on-Write%20Fork%20for%20xv6.html" target="_blank">
-        <div>
-          简要介绍 There is a saying in computer systems that any systems problem can be solved with a level of indirection.任何系统问题都能通过一个中间层解决   修改uvmcopy() 函数，将父进程物理页映射子进程，而不是分配新的物理页。清除父进程与子进程页表项的PTE_W项 修改usertr
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/Tinyhttpd%E5%AE%9E%E6%88%98%E4%B8%89%EF%BC%9A%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.html" target="_blank">
-          Tinyhttpd实战三：源码解析
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/Tinyhttpd%E5%AE%9E%E6%88%98%E4%B8%89%EF%BC%9A%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.html" target="_blank">
-        <div>
-          代码读代码时的一些建议1 在代码运行成功后，在虚拟机中浏览器访问该程序，并根据代码流程，尝试各种各样的请求即在firefox浏览器中，打开web developer中的network选项查看request 和responsed 内容点击edit and resend 自己编辑修改request请求并发送 加了一些注释的源代码1234567891011121314151617181920212
         </div>
       </a>
 
@@ -555,6 +529,32 @@
       <a class="index-excerpt index-excerpt__noimg" href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E6%B3%A8%E9%87%8A%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89.html" target="_blank">
         <div>
           往期文章：NVMe驱动学习记录-1NVMe驱动学习记录-2NVMe驱动 请求路径学习记录 整合了之前文章的一些内容 参考源码地址：https://mirrors.tuna.tsinghua.edu.cn/kernel/v4.x/linux-4.19.90.tar.gz      linux-4.19.90\drivers\nvme\host  源码阅读环境：Windows 搭建 openg
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/Tinyhttpd%E5%AE%9E%E6%88%98%E4%B8%89%EF%BC%9A%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.html" target="_blank">
+          Tinyhttpd实战三：源码解析
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/Tinyhttpd%E5%AE%9E%E6%88%98%E4%B8%89%EF%BC%9A%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.html" target="_blank">
+        <div>
+          代码读代码时的一些建议1 在代码运行成功后，在虚拟机中浏览器访问该程序，并根据代码流程，尝试各种各样的请求即在firefox浏览器中，打开web developer中的network选项查看request 和responsed 内容点击edit and resend 自己编辑修改request请求并发送 加了一些注释的源代码1234567891011121314151617181920212
         </div>
       </a>
 
