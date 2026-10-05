@@ -300,15 +300,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/blog/Tinyhttpd%E5%AE%9E%E6%88%98%E4%B8%89%EF%BC%9A%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.html" target="_blank">
-          Tinyhttpd实战三：源码解析
+        <a href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E6%B3%A8%E9%87%8A%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89.html" target="_blank">
+          NVMe驱动注释（持续更新）
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/blog/Tinyhttpd%E5%AE%9E%E6%88%98%E4%B8%89%EF%BC%9A%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.html" target="_blank">
+      <a class="index-excerpt index-excerpt__noimg" href="/blog/NVMe%E9%A9%B1%E5%8A%A8%E6%B3%A8%E9%87%8A%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89.html" target="_blank">
         <div>
-          代码读代码时的一些建议1 在代码运行成功后，在虚拟机中浏览器访问该程序，并根据代码流程，尝试各种各样的请求即在firefox浏览器中，打开web developer中的network选项查看request 和responsed 内容点击edit and resend 自己编辑修改request请求并发送 加了一些注释的源代码1234567891011121314151617181920212
+          往期文章：NVMe驱动学习记录-1NVMe驱动学习记录-2NVMe驱动 请求路径学习记录 整合了之前文章的一些内容 参考源码地址：https://mirrors.tuna.tsinghua.edu.cn/kernel/v4.x/linux-4.19.90.tar.gz      linux-4.19.90\drivers\nvme\host  源码阅读环境：Windows 搭建 openg
         </div>
       </a>
 
@@ -506,38 +506,6 @@
     
     
       <div class="col-12 col-md-4 m-auto index-img">
-        <a href="/blog/fio%E4%B8%8B%E5%8F%91%E7%9A%84%E8%AF%B7%E6%B1%82%E5%A4%A7%E5%B0%8F%E4%B8%8D%E7%A1%AE%E5%AE%9A.html" target="_blank">
-          <img src="https://img-blog.csdnimg.cn/1efb0ebc9fb84995b78f1665f64794e5.png" srcset="/img/loading.gif" lazyload alt="fio下发的请求大小不确定">
-        </a>
-      </div>
-    
-    <article class="col-12 col-md-8 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/blog/fio%E4%B8%8B%E5%8F%91%E7%9A%84%E8%AF%B7%E6%B1%82%E5%A4%A7%E5%B0%8F%E4%B8%8D%E7%A1%AE%E5%AE%9A.html" target="_blank">
-          fio下发的请求大小不确定
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt " href="/blog/fio%E4%B8%8B%E5%8F%91%E7%9A%84%E8%AF%B7%E6%B1%82%E5%A4%A7%E5%B0%8F%E4%B8%8D%E7%A1%AE%E5%AE%9A.html" target="_blank">
-        <div>
-          问题描述1fio --filename=/dev/xxx_dev --direct=1 --rw=write --bs=1M --ioengine=libaio --iodepth=1 --runtime=60 --numjobs=1 --time_based --group_reporting --name=&quot;test xxx&quot; --eta-newline=1  承接
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-      <div class="col-12 col-md-4 m-auto index-img">
         <a href="/blog/femu%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95.html" target="_blank">
           <img src="https://img-blog.csdnimg.cn/ffad2c30ae0c48b2958c58a58cfb370a.png" srcset="/img/loading.gif" lazyload alt="femu使用记录">
         </a>
@@ -555,6 +523,38 @@
       <a class="index-excerpt " href="/blog/femu%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95.html" target="_blank">
         <div>
           Briefly speaking, FEMU is a fast, accurate, scalable, and extensible NVMe SSD Emulator. Based upon QEMU&#x2F;KVM, FEMU is exposed to Guest OS (Linux) as an NVMe block device (e.g. &#x2F;dev&#x2F;
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/blog/fio%E5%BC%95%E5%8F%91%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98.html" target="_blank">
+          <img src="https://img-blog.csdnimg.cn/9e042662731f48849bef855e2ef5ff59.png" srcset="/img/loading.gif" lazyload alt="fio引发的一些问题">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/blog/fio%E5%BC%95%E5%8F%91%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98.html" target="_blank">
+          fio引发的一些问题
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt " href="/blog/fio%E5%BC%95%E5%8F%91%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98.html" target="_blank">
+        <div>
+          奇怪的255扇区由于块设备驱动项目需要测试读写速度，故使用fio工具，没想着深入了解，简单测个速就可以使用tldr命令得到测试磁盘读写的命令 123456789101112131415161718192021222324252627282930313233343536# tldr命令介绍tldr tldrtldrDisplay simple help pages for command-li
         </div>
       </a>
 
