@@ -32,6 +32,10 @@
       const target = document.querySelector(`[data-chapter-path="${lastChapter}"]`);
       continueLink.href = target ? target.href : lastChapter;
       continueLink.textContent = '继续阅读';
+      if (target) {
+        const range = target.closest('.novel-catalog-range');
+        if (range) range.open = true;
+      }
     }
     return;
   }

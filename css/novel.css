@@ -427,6 +427,57 @@ body:has(.novel-reader-marker) #live2dcanvas {
   gap: .85rem;
 }
 
+.novel-catalog-help {
+  padding: .75rem 1.15rem;
+  border-bottom: 1px solid var(--novel-line);
+  color: var(--novel-muted);
+  font-size: .82rem;
+}
+
+.novel-catalog-range + .novel-catalog-range {
+  border-top: 1px solid var(--novel-line);
+}
+
+.novel-catalog-range > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  cursor: pointer;
+  color: var(--novel-ink);
+  font-weight: 600;
+  list-style: none;
+  background: color-mix(in srgb, var(--novel-accent-soft) 52%, transparent);
+}
+
+.novel-catalog-range > summary::-webkit-details-marker {
+  display: none;
+}
+
+.novel-catalog-range > summary::before {
+  content: '＋';
+  width: 1.2rem;
+  color: var(--novel-accent);
+}
+
+.novel-catalog-range[open] > summary::before {
+  content: '−';
+}
+
+.novel-catalog-range > summary span {
+  flex: 1;
+}
+
+.novel-catalog-range > summary small {
+  color: var(--novel-muted);
+  font-weight: 400;
+}
+
+.novel-catalog-range .novel-chapter-list {
+  padding-top: .25rem;
+}
+
 .novel-volume {
   overflow: hidden;
   border: 1px solid var(--novel-line);
